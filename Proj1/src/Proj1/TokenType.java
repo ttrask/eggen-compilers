@@ -6,5 +6,11 @@ public enum TokenType {
 	ID,
 	Ignored,
 	Unknown,
-	Comment
+	Comment, 
+	Error,
+	Assignment,
+	Block,
+	Logic,
+	//( )
+	Argument,
 }

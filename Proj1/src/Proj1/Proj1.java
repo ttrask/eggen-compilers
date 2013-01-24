@@ -8,20 +8,22 @@ import java.io.IOException;
 
 public class Proj1 {
 
+	private static List<Token> _symbols = new ArrayList<Token>();
+
 	public static void main(String[] args) {
 
-		String inputFileName;
+		String _inputFileName;
 
 		println("Project Started");
 
 		List<SourceLine> Source = new ArrayList<SourceLine>();
 
 		if (args.length > 0) {
-			inputFileName = args[0];
+			_inputFileName = args[0];
 
-			println("Attempting to tokenize Input File: " + inputFileName);
+			println("Attempting to tokenize Input File: " + _inputFileName);
 			try {
-				FileReader fr = new FileReader(inputFileName);
+				FileReader fr = new FileReader(_inputFileName);
 				BufferedReader br = new BufferedReader(fr);
 
 				String line;
@@ -33,33 +35,56 @@ public class Proj1 {
 				Tokenizer tk = new Tokenizer();
 
 				while ((line = br.readLine()) != null) {
+
 					lineNumber++;
-					SourceLine sc = tk.TokenizeLine(line, blockDepth,
-							commentDepth);
-					sc.LineNumber = lineNumber;
-					Source.add(sc);
+					line = line.trim();
+					if (line.length() > 0) {
+						SourceLine sc = tk.TokenizeLine(line, 
+								commentDepth, blockDepth);
+						sc.LineNumber = lineNumber;
+						Source.add(sc);
 
-					// add logic to deal with changing block-depth.
-					// not needed until p2.
-					blockDepth = sc.BlockDepth;
+						// add logic to deal with changing block-depth.
+						// not needed until p2.
+						blockDepth = sc.BlockDepth;
 
-					// add logic to deal with changing comment-depth.
-					commentDepth = sc.CommentDepth;
-
+						// add logic to deal with changing comment-depth.
+						commentDepth = sc.CommentDepth;
+					}
 				}
 
 				for (SourceLine sc : Source) {
 					println("Source Line: " + sc.SourceCode);
 					if (sc.Tokens.size() > 0) {
 						for (Token t : sc.Tokens) {
-							println("token: " + t.ID);
+
+							if (t.Type == TokenType.ID) {
+								AddTokenToSmybolTable(t);
+							}
+
+							String s = "";
+							if (t.Type == TokenType.ID
+									|| t.Type == TokenType.Num
+									|| t.Type == TokenType.Keyword
+									|| t.Type == TokenType.Error)
+								s += t.Type.toString() + ": ";
+							s += t.ID;
+							println(s);
+							if (t.Type == TokenType.Error)
+								println("\t" + t.Note);
 						}
 						println("");
 					}
 				}
 
+				println("\n\nSymbol Table\n*************************");
+				println("Name\tDepth");
+				for (Token t : _symbols) {
+					println(t.ID + "\t" + t.Depth);
+				}
+
 			} catch (FileNotFoundException ex) {
-				System.out.println("File " + inputFileName + " not found!");
+				System.out.println("File " + _inputFileName + " not found!");
 			} catch (IOException ex) {
 				println("There was an error reading the input file:"
 						+ ex.getMessage());
@@ -68,6 +93,16 @@ public class Proj1 {
 			println("No input file specified");
 		}
 
+	}
+
+	public static void AddTokenToSmybolTable(Token t){
+		for(Token s: _symbols){
+			if(s.Depth == t.Depth && s.ID.compareTo(t.ID) == 0)
+				return;
+		}
+		
+		_symbols.add(t);
+		return;
 	}
 
 	public static void println(String msg) {
