@@ -12,8 +12,8 @@ public class Tokenizer {
 	static private int _commentDepth = 0;
 	static private int _blockDepth = 0;
 
-	//Split Sets of Operators.  Used to parse code.
-	//Seemed like a good idea at the time.	
+	// Split Sets of Operators. Used to parse code.
+	// Seemed like a good idea at the time.
 	public List<String> Keywords = Arrays.asList("else", "if", "int", "float",
 			"void", "return", "void", "while");
 	public List<String> AssignmentOperators = Arrays.asList("+", "-", "*", "/",
@@ -70,7 +70,7 @@ public class Tokenizer {
 
 		HashMap<String, List<String>> operators = new HashMap<String, List<String>>();
 		operators.put("Keywords", Keywords);
-		// operators.put("CommentOperators", CommentOperators);
+		operators.put("CommentOperators", CommentOperators);
 		operators.put("AssignmentOperators", AssignmentOperators);
 		operators.put("LogicOperators", LogicOperators);
 		operators.put("BlockOperators", BlockOperators);
@@ -83,7 +83,13 @@ public class Tokenizer {
 			for (String subS : s.split(" ")) {
 				subS = subS.trim();
 				if (subS.length() > 0)
-					genTokens.addAll(TokenizeString(subS));
+					if (_commentDepth == 0
+							&& !OperatorInString(subS, CommentOperators)) {
+						genTokens.addAll(TokenizeString(subS));
+					} else {
+
+						genTokens.addAll(ParseComment(subS));
+					}
 			}
 			return genTokens;
 		} else {
@@ -169,13 +175,17 @@ public class Tokenizer {
 			return new ArrayList<Token>();
 
 		} else if (s.startsWith("/*")) {
+
 			_commentDepth++;
+		} else if (s.contains("/*")) {
+			s = s.replace("/*", " /*");
+			return TokenizeString(s);
 		}
 
-		if (!s.startsWith("/*") && !s.endsWith("*/") && s.contains("/*")
-				&& _commentDepth == 0)
-			return TokenizeString(SpaceifyStringContainingOperators(s,
-					AssignmentOperators));
+		// if (!s.startsWith("/*") && !s.endsWith("*/") && s.contains("/*")
+		// && _commentDepth == 0)
+		// return TokenizeString(SpaceifyStringContainingOperators(s,
+		// AssignmentOperators));
 
 		if (s.endsWith("*/")) {
 			if (_commentDepth > 0) {
@@ -183,6 +193,9 @@ public class Tokenizer {
 			} else
 				return TokenizeString(SpaceifyStringContainingOperators(s,
 						AssignmentOperators));
+		} else if (s.contains("*/")) {
+			s = s.replace("*/", " */ ");
+			return TokenizeString(s);
 		}
 
 		return new ArrayList<Token>();
