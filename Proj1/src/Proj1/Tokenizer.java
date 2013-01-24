@@ -12,8 +12,10 @@ public class Tokenizer {
 	static private int _commentDepth = 0;
 	static private int _blockDepth = 0;
 
+	//Split Sets of Operators.  Used to parse code.
+	//Seemed like a good idea at the time.	
 	public List<String> Keywords = Arrays.asList("else", "if", "int", "float",
-			"return", "void", "while");
+			"void", "return", "void", "while");
 	public List<String> AssignmentOperators = Arrays.asList("+", "-", "*", "/",
 			"<", "=", ";", ",");
 	public List<String> LogicOperators = Arrays.asList("<=", ">", ">=", "==",
@@ -34,12 +36,12 @@ public class Tokenizer {
 			s = s.trim();
 			if (s.length() > 0) {
 				// concatenate strings if in comment
-				if (commentDepth > 0 || _isFullLineComment)
+				if (_commentDepth > 0 || _isFullLineComment)
 					_isComment = true;
-				else{
+				else {
 					_isComment = false;
 				}
-				
+
 				if (_isComment != true
 						&& !OperatorInString(s, CommentOperators)) {
 					tokens.addAll(TokenizeString(s));
@@ -48,6 +50,11 @@ public class Tokenizer {
 					tokens.addAll(ParseComment(s));
 				}
 			}
+		}
+
+		if (_isFullLineComment == true) {
+			_isFullLineComment = false;
+			_commentDepth = 0;
 		}
 
 		SourceLine sc = new SourceLine();
@@ -117,27 +124,6 @@ public class Tokenizer {
 					}
 				}
 
-				// if (cont && s.contains("[")) {
-				// if (!(s.contains("]"))) {
-				// tk.Type = TokenType.Error;
-				// tk.Note = "Open Subscript missing closing subscript";
-				// } else if (CountOccurrences(s, ']') > 1
-				// || CountOccurrences(s, '[') > 1
-				// || s.indexOf(']') < s.indexOf('[')) {
-				// tk.Type = TokenType.Error;
-				// tk.Note = "Syntax Error";
-				// } else {
-				//
-				// String sub = s
-				// .substring(s.indexOf('['), s.indexOf(']'));
-				// genTokens.addAll(TokenizeString("["));
-				// genTokens.addAll(TokenizeString(sub));
-				// genTokens.addAll(TokenizeString("]"));
-				// s = s.substring(0, s.indexOf('[') - 1);
-				// tk.ID = s;
-				// }
-				// } else {
-
 				// if the block has non-standard unicode characters, do
 				// something.
 				// llike throw an error or something.
@@ -157,6 +143,9 @@ public class Tokenizer {
 					// if it is, process it as an identifier.
 					if (cont && IsValidVarName(s)) {
 						tk.Type = TokenType.ID;
+					} else {
+						tk.Type = TokenType.Error;
+						tk.Note = "Invalid Token. Tokens must be either fully alpha, fully numeric, operators or keywords.";
 					}
 				}
 				// }
@@ -182,6 +171,11 @@ public class Tokenizer {
 		} else if (s.startsWith("/*")) {
 			_commentDepth++;
 		}
+
+		if (!s.startsWith("/*") && !s.endsWith("*/") && s.contains("/*")
+				&& _commentDepth == 0)
+			return TokenizeString(SpaceifyStringContainingOperators(s,
+					AssignmentOperators));
 
 		if (s.endsWith("*/")) {
 			if (_commentDepth > 0) {
@@ -219,8 +213,10 @@ public class Tokenizer {
 	}
 
 	public boolean IsValidVarName(String s) {
-		// return s.matches("[^a-zA-Z0-9]");
-		return true;
+		// alphanum valid varname
+		// return s.matches("^[a-zA-Z0-9]+$");
+		// alpha valid varname
+		return s.matches("^[a-zA-Z]+$");
 	}
 
 	private static int CountOccurrences(String haystack, char needle) {
