@@ -23,6 +23,7 @@ public class Proj1 {
 
 			println("Attempting to tokenize Input File: " + _inputFileName);
 			try {
+				
 				FileReader fr = new FileReader(_inputFileName);
 				BufferedReader br = new BufferedReader(fr);
 
@@ -34,30 +35,36 @@ public class Proj1 {
 
 				Tokenizer tk = new Tokenizer();
 
+				//TODO: Add logic to concat multiple source code lines
+				//		until a semcol is found.
 				while ((line = br.readLine()) != null) {
 
 					lineNumber++;
 					line = line.trim();
 					if (line.length() > 0) {
-						SourceLine sc = tk.TokenizeLine(line, 
-								commentDepth, blockDepth);
+						
+						//generates a basic source code line for each line given.
+						SourceLine sc = tk.TokenizeLine(line, commentDepth,
+								blockDepth);
 						sc.LineNumber = lineNumber;
 						Source.add(sc);
 
-						// add logic to deal with changing block-depth.
-						// not needed until p2.
+						// TODO: add logic to deal with changing block-depth.
+						// 		 not needed until p2.
 						blockDepth = sc.BlockDepth;
 
-						// add logic to deal with changing comment-depth.
+						//comment depth logic is in tokenizer.
 						commentDepth = sc.CommentDepth;
 					}
 				}
 
 				for (SourceLine sc : Source) {
-					println("Source Line: " + sc.SourceCode);
+					println("INPUT: " + sc.SourceCode);
+
 					if (sc.Tokens.size() > 0) {
 						for (Token t : sc.Tokens) {
 
+							// builds symbol table.
 							if (t.Type == TokenType.ID) {
 								AddTokenToSmybolTable(t);
 							}
@@ -71,7 +78,7 @@ public class Proj1 {
 							s += t.ID;
 							println(s);
 							if (t.Type == TokenType.Error)
-								println("\t" + t.Note);
+								println(t.Note);
 						}
 						println("");
 					}
@@ -95,16 +102,22 @@ public class Proj1 {
 
 	}
 
-	public static void AddTokenToSmybolTable(Token t){
-		for(Token s: _symbols){
-			if(s.Depth == t.Depth && s.ID.compareTo(t.ID) == 0)
+	
+
+	//adds the token to the symbol table if there is no symbol
+	//with the same Name&Depth.  
+	//TODO: Add logic to give each code block a unique id.
+	public static void AddTokenToSmybolTable(Token t) {
+		for (Token s : _symbols) {
+			if (s.Depth == t.Depth && s.ID.compareTo(t.ID) == 0)
 				return;
 		}
-		
+
 		_symbols.add(t);
 		return;
 	}
 
+	//shortcut print for the lazy.
 	public static void println(String msg) {
 		System.out.println(msg);
 	}
