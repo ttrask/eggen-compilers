@@ -5,11 +5,11 @@ i = 333;        ******************/       */
 //iiii = 3@33;
 
 Float f5 = 3 //Float is non-keyword.  f5 is invalid var.
-float f = 5; //proper form.
+float f = 5e5; //proper form.
 
 int g 4 cd (int u, int v)      {
-
-if(v == >= 0) return/*a comment*/v+ u;
+/*
+if(v == >= 0) return/*a comment*/*/v+ u;
 return /*a comment*/ u;
 
 return /*acomment u;
@@ -28,9 +28,12 @@ j[v] = 4; j[test^2] =5
 JamesMay[test2] =5
 v[test2] = 3
 p(5) = 3;
+
 j{test} = 3;
 testtwo[test] = 2;
 
 [e.g., int parse(int x, int y){ x=4;}]
 
-
+float ftwo = 5.0E-1
+float ftwo = 5.E
+float 1direction;
