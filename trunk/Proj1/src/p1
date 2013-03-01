@@ -1,0 +1,3 @@
+#!/bin/ksh
+# echo $1
+java proj1 $1
