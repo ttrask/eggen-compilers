@@ -1,11 +1,14 @@
 /**************/
+/*return/* /* */*/*/
 /************************* /*
 i = 333;        ******************/       */
 
 //iiii = 3@33;
 
-Float f5 = 3 //Float is non-keyword.  f5 is invalid var.
+Float f5 = 3 
 float f = 5e5; //proper form.
+
+inti 5;
 
 int g 4 cd (int u, int v)      {
 /*
@@ -21,19 +24,14 @@ else ret_urn gc*/d(vxxxxxxvvvvv, u-u/v*v);
        }
 !   
 }
-
-int j = 5;
-j[5] = 10;
 j[v] = 4; j[test^2] =5
 JamesMay[test2] =5
-v[test2] = 3
-p(5) = 3;
-
 j{test} = 3;
 testtwo[test] = 2;
-
 [e.g., int parse(int x, int y){ x=4;}]
-
-float ftwo = 5.0E-1
-float ftwo = 5.E
+ftwo = 5.0E-1
+ftwo = 5.E
 float 1direction;
+0.5E4
+0.3
+.4e5.0
