@@ -72,7 +72,8 @@ public class Proj1 {
 
 							String s = "";
 							if (t.Type == TokenType.ID
-									|| t.Type == TokenType.Num
+									|| t.Type == TokenType.Float
+									|| t.Type == TokenType.Int
 									|| t.Type == TokenType.Keyword
 									|| t.Type == TokenType.Error)
 								s += t.Type.toString() + ": ";
