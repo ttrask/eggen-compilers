@@ -2,7 +2,8 @@ package Proj1;
 
 public enum TokenType {
 	Keyword,
-	Num,
+	Int,
+	Float,
 	ID,
 	Ignored,
 	Unknown,
@@ -11,7 +12,6 @@ public enum TokenType {
 	Assignment,
 	Block,
 	Logic,
-	//( )
 	Argument,
 	Arithmetic
 }
