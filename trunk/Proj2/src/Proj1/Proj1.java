@@ -72,7 +72,8 @@ public class Proj1 {
 
 							String s = "";
 							if (t.Type == TokenType.ID
-									|| t.Type == TokenType.Num
+									|| t.Type == TokenType.Float
+									|| t.Type == TokenType.Int
 									|| t.Type == TokenType.Keyword
 									|| t.Type == TokenType.Error)
 								s += t.Type.toString() + ": ";
@@ -101,8 +102,6 @@ public class Proj1 {
 		}
 
 	}
-	
-	
 
 	// adds the token to the symbol table if there is no symbol
 	// with the same Name&Depth.
