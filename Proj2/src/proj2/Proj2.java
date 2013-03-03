@@ -36,6 +36,10 @@ public class Proj2 {
 				
 				boolean isLexicallyValidFile = LexicalAnalyzer.LexicallyAnalyzeSource(_source);
 				
+				if(isLexicallyValidFile)
+					println("VALID FILE");
+				else
+					println("INVALID FILE");
 			}
 			else{
 				println("There was an error tokenizing your input file.");
