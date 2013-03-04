@@ -408,7 +408,115 @@ public class LexicalAnalyzer {
 			R();
 		}
 		// 40: Q'=>;
-		if(AreStringsSimilar(t.ID, ";"))
+		if (AreStringsSimilar(t.ID, ";")) {
+			Pop();
+		} else {
+			throw new UnexpectedTokenException();
+		}
+
+		return true;
+	}
+
+	public static boolean R() throws Exception {
+
+		// 43: R-> id R'
+		if (IsTokenInSymbolTable(t)) {
+			R_P();
+		} else
+		// 44: R=> (R) X' V' T'
+		if (AreStringsSimilar(t.ID, "(")) {
+			Pop();
+			R();
+			if (AreStringsSimilar(t.ID, ")")) {
+				X_P();
+				V_P();
+				T_P();
+			} else {
+				throw new UnexpectedTokenException();
+			}
+		} else // 45: R-> num X' V' T'
+				// 46: R-> floatnum X' V' T'
+		if (t.Type == TokenType.Int || t.Type == TokenType.Float) {
+			Pop();
+			X_P();
+			V_P();
+			T_P();
+		} else {
+
+			throw new UnexpectedTokenException();
+		}
+
+		return true;
+	}
+
+	public static boolean R_P() throws Exception {
+		// 48: R'-> (AB)X'V'T'
+		if (AreStringsSimilar(t.ID, "(")) {
+			Pop();
+			BETA();
+			if (AreStringsSimilar(t.ID, ")")) {
+				X_P();
+				V_P();
+				T_P();
+			} else {
+				throw new UnexpectedTokenException();
+			}
+		} else {
+			// 47: R'-> S' R''
+			S_P();
+			R_PP();
+		}
+		return true;
+	}
+
+	public static boolean R_PP() throws Exception {
+		//49: R''=> = R
+		if (AreStringsSimilar(t.ID, "=")) {
+			Pop();
+			R();
+		}
+		//50: R''-> X' V' T'
+		else{
+			X_P();
+			V_P();
+			T_P();
+		}
+		return true;
+	}
+
+	public static boolean S_P() throws Exception {
+		//51: S'-> [R]
+		if (AreStringsSimilar(t.ID, "[")) {
+			Pop();
+			R();
+			if (AreStringsSimilar(t.ID, "]")) {
+				Pop();
+			}
+			else{
+				throw new UnexpectedTokenException();
+			}
+		}
+		
+		//52 S' -> empty
+		return true;
+	}
+
+	public static boolean T_P() throws Exception {
+		//53: T'-> U V T'
+		if(t.Type == TokenType.Logic)
+		{
+			U();
+			V();
+			T_P();
+		}
+
+		//54: T'-> empty
+		return true;
+	}
+
+	public static boolean U() throws Exception {
+		//55-60: U=> Logic Operator
+		if(t.Type == TokenType.Logic)
 		{
 			Pop();
 		}
@@ -419,43 +527,54 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean R() throws Exception {
-		return true;
-	}
-
-	public static boolean R_P() throws Exception {
-		return true;
-	}
-
-	public static boolean S_P() throws Exception {
-		return true;
-	}
-
-	public static boolean T_P() throws Exception {
-		return true;
-	}
-
-	public static boolean U() throws Exception {
-		return true;
-	}
-
 	public static boolean V() throws Exception {
+		//61: V-> X V'
+		X();
+		V_P();
 		return true;
 	}
 
 	public static boolean V_P() throws Exception {
+		//62: V'-> W X V'
+		if (AreStringsSimilar(t.ID, "+") ||AreStringsSimilar(t.ID, "-"))
+		{
+			W();
+			X();
+			V_P();
+		}
+		
+		//63: V'-> EMPTY
 		return true;
 	}
 
 	public static boolean W() throws Exception {
+		//64: W=>+; 65: W=>-
+		if (AreStringsSimilar(t.ID, "+") ||AreStringsSimilar(t.ID, "-")){
+			Pop();
+		}
+		else{
+			throw new UnexpectedTokenException();
+		}
+		
 		return true;
 	}
 
 	public static boolean X() throws Exception {
+		//66: X-> Z X'
+		Z();
+		X_P();
 		return true;
 	}
 
 	public static boolean X_P() throws Exception {
+		//67: X'-> Y Z X'
+		if (AreStringsSimilar(t.ID, "*") ||AreStringsSimilar(t.ID, "/")){
+			Y();
+			Z();
+			X_P();
+		}
+		
+		//68: X'-> EMPTY
 		return true;
 	}
 
