@@ -13,5 +13,6 @@ public enum TokenType {
 	Block,
 	Logic,
 	Argument,
-	Arithmetic
+	Arithmetic,
+	EOF
 }
