@@ -17,9 +17,9 @@ public class Tokenizer {
 	public List<String> Keywords = Arrays.asList("else", "if", "int", "float",
 			"void", "return", "void", "while");
 	public List<String> ArithmeticOperators = Arrays.asList("+", "-");
-	public List<String> AssignmentOperators = Arrays.asList("*", "/", "<", "=",
+	public List<String> AssignmentOperators = Arrays.asList("*", "/", "=",
 			";", ",");
-	public List<String> LogicOperators = Arrays.asList("<=", ">", ">=", "==",
+	public List<String> LogicOperators = Arrays.asList("<=", ">", ">=", "==", "<",
 			"!=");
 	public List<String> BlockOperators = Arrays.asList("{", "}", "[", "]");
 	public List<String> ArgumentOperators = Arrays.asList("(", ")", ",", ";");
