@@ -16,7 +16,7 @@ int minloc(int a[], int low, int high)
 		i = i + 1;
 	}
 	
-	if(t==4) i=3; else i=4
+	if(t==4) i=3; else i=4;
 
 	return k;
 }
