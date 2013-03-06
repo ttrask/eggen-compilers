@@ -289,8 +289,8 @@ public class LexicalAnalyzer {
 
 		if (AreStringsSimilar(t.ID, "{")) {
 			Pop();
-			K_P();
-			L_P();
+			K();
+			L();
 			if (AreStringsSimilar(t.ID, "}")) {
 				Pop();
 				return true;
@@ -300,6 +300,11 @@ public class LexicalAnalyzer {
 		} else {
 			throw new UnexpectedTokenException();
 		}
+	}
+	
+	public static boolean K() throws Exception{
+		K_P();
+		return true;
 	}
 
 	public static boolean K_P() throws Exception {
@@ -313,13 +318,18 @@ public class LexicalAnalyzer {
 		if (AreStringsSimilar(t.ID, "int") || AreStringsSimilar(t.ID, "void")
 				|| AreStringsSimilar(t.ID, "float")) {
 			D();
-			K_P();
+			K();
 		}
 
 		// 25 K'->empty
 		return true;
 	}
 
+	public static boolean L() throws Exception{
+		L_P();
+		return true;
+	}
+	
 	public static boolean L_P() throws Exception {
 		if (!(IsTokenInSet(Arrays
 				.asList("(", "{", "if", "while", "return", "}"))
@@ -333,7 +343,7 @@ public class LexicalAnalyzer {
 		} else {
 			// 26 L'-> M L'
 			M();
-			L_P();
+			L();
 		}
 		return true;
 	}
@@ -487,6 +497,7 @@ public class LexicalAnalyzer {
 			Pop();
 			R();
 			if (AreStringsSimilar(t.ID, ")")) {
+				Pop();
 				X_P();
 				V_P();
 				T_P();
