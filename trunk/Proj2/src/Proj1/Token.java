@@ -4,7 +4,7 @@ public class Token {
 	
 	public String ID;
 	public String SourceLine;
-	public String SourceLineNumber;
+	public int SourceLineNumber;
 	public TokenType Type = TokenType.Unknown;
 	public int Depth;
 	public CodeBlock ParentBlock;
