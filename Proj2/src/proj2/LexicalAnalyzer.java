@@ -21,6 +21,7 @@ public class LexicalAnalyzer {
 		for (SourceLine s : source) {
 			try {
 				for (Token t : s.Tokens) {
+					t.SourceLineNumber = s.LineNumber;
 					t.SourceLine = s.SourceCode;
 				}
 				_tokens.addAll(s.Tokens);
@@ -41,14 +42,14 @@ public class LexicalAnalyzer {
 				Pop();
 				// loop until all of the tokens are processed.
 				while (t.Type != TokenType.EOF) {
-					B();
+					dec_list();
 				}
 			}
 		} catch (TokenizationDoneException e) {
 			_isValid = true;
 		} catch (UnexpectedTokenException e) {
 			System.out.println("Error parsing input file: Unexpected Token");
-			System.out.println("Error on line: " + t.SourceLine);
+			System.out.println("Error on line " + t.SourceLineNumber+": " + t.SourceLine);
 			System.out.println("Error on token: " + t.ID);
 			_isValid = false;
 		} catch (InvalidEndOfFileException e) {
@@ -66,14 +67,14 @@ public class LexicalAnalyzer {
 		return _isValid;
 	}
 
-	public static boolean B() throws Exception {
+	public static boolean dec_list() throws Exception {
 
 		if (t.Type == TokenType.Keyword) {
 			if (AreStringsSimilar(t.ID, "int")
 					|| AreStringsSimilar(t.ID, "void")
 					|| AreStringsSimilar(t.ID, "float")) {
-				C();
-				B_P();
+				declaration();
+				dec_list_p();
 			} else {
 				throw new UnexpectedTokenException();
 			}
@@ -82,15 +83,15 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean B_P() throws Exception {
+	public static boolean dec_list_p() throws Exception {
 		// 2: B'=> C B'
 		if (t.Type == TokenType.EOF) {
 			throw new TokenizationDoneException();
 		} else if (AreStringsSimilar(t.ID, "int")
 				|| AreStringsSimilar(t.ID, "void")
 				|| AreStringsSimilar(t.ID, "float")) {
-			C();
-			B_P();
+			declaration();
+			dec_list_p();
 		} else if (t.Type == TokenType.EOF) {
 			throw new TokenizationDoneException();
 		}
@@ -98,7 +99,7 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean C() throws Exception {
+	public static boolean declaration() throws Exception {
 
 		if (!IsTokenInSet(Arrays.asList("int", "float", "void"))) {
 			throw new UnexpectedTokenException();
@@ -106,12 +107,12 @@ public class LexicalAnalyzer {
 		// 4: C->E id C'
 		if (AreStringsSimilar(t.ID, "int") || AreStringsSimilar(t.ID, "void")
 				|| AreStringsSimilar(t.ID, "float")) {
-			E();
+			type_spec();
 			if (!IsTokenInSymbolTable(t)) {
 				throw new UnexpectedTokenException();
 			} else {
 				Pop();
-				C_P();
+				dec_p();
 			}
 		}
 		// 3: C => empty
@@ -119,7 +120,7 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean C_P() throws Exception {
+	public static boolean dec_p() throws Exception {
 
 		if (!IsTokenInSet(Arrays.asList("(", "[", ";"))) {
 			throw new UnexpectedTokenException();
@@ -128,10 +129,10 @@ public class LexicalAnalyzer {
 		// 6: C' => (G)J
 		if (AreStringsSimilar(t.ID, "(")) {
 			Pop();
-			G();
+			params();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
-				J();
+				compound_stmt();
 			} else {
 				throw new UnexpectedTokenException();
 			}
@@ -140,28 +141,28 @@ public class LexicalAnalyzer {
 		}
 		// 5: C'=>D'
 		else if (AreStringsSimilar(t.ID, "[") || AreStringsSimilar(t.ID, ";")) {
-			D_P();
+			var_dec_p();
 		}
 		return true;
 	}
 
-	public static boolean D() throws Exception {
+	public static boolean var_dec() throws Exception {
 		// 8: D=> E id D'
 		if (AreStringsSimilar(t.ID, "int") || AreStringsSimilar(t.ID, "void")
 				|| AreStringsSimilar(t.ID, "float")) {
-			E();
+			type_spec();
 			if (!IsTokenInSymbolTable(t)) {
 				throw new UnexpectedTokenException();
 			} else {
 				Pop();
-				D_P();
+				var_dec_p();
 			}
 
 		}
 		return true;
 	}
 
-	public static boolean D_P() throws Exception {
+	public static boolean var_dec_p() throws Exception {
 		// 9: D'-> ;
 		if (AreStringsSimilar(t.ID, ";")) {
 			Pop();
@@ -195,7 +196,7 @@ public class LexicalAnalyzer {
 
 	}
 
-	public static boolean E() throws Exception {
+	public static boolean type_spec() throws Exception {
 		// 11. E=>int
 		// 12. E->float
 		// 13. E->void
@@ -209,16 +210,20 @@ public class LexicalAnalyzer {
 		}
 	}
 
-	public static boolean G() throws Exception {
+	public static boolean params() throws Exception {
 		// 14 G=> int G'
 		// 15 G=> float G'
 		if (AreStringsSimilar(t.ID, "int") || AreStringsSimilar(t.ID, "float")) {
 			Pop();
-			return G_P();
+			return params_p();
 		} else
 		// 16 G=> void
 		if (AreStringsSimilar(t.ID, "void")) {
 			Pop();
+			//special case of passing in a void parameter
+			if(IsTokenInSymbolTable(t)){
+				return params_p();
+			}
 			return true;
 		} else {
 			throw new Exception();
@@ -226,19 +231,19 @@ public class LexicalAnalyzer {
 
 	}
 
-	public static boolean G_P() throws Exception {
+	public static boolean params_p() throws Exception {
 		// 17: G'-> id I' H'
 		if (IsTokenInSymbolTable(t)) {
 			Pop();
-			I_P();
-			H_P();
+			param_p();
+			param_list();
 		} else {
 			throw new SymbolNotFoundException();
 		}
 		return true;
 	}
 
-	public static boolean H_P() throws Exception {
+	public static boolean param_list() throws Exception {
 
 		if (!IsTokenInSet(Arrays.asList(")", ","))) {
 			throw new UnexpectedTokenException();
@@ -247,27 +252,27 @@ public class LexicalAnalyzer {
 		// 18: H-'>, I H'
 		if (AreStringsSimilar(t.ID, ",")) {
 			Pop();
-			I();
-			H_P();
+			param();
+			param_list();
 		}
 
 		// 19: H'-> empty
 		return true;
 	}
 
-	public static boolean I() throws Exception {
+	public static boolean param() throws Exception {
 		// 20 I=> E id I'
-		E();
+		type_spec();
 		if (IsTokenInSymbolTable(t)) {
 			Pop();
-			I_P();
+			param_p();
 		} else {
 			throw new SymbolNotFoundException();
 		}
 		return true;
 	}
 
-	public static boolean I_P() throws Exception {
+	public static boolean param_p() throws Exception {
 		if (!IsTokenInSet(Arrays.asList("[", ")", ","))) {
 			throw new UnexpectedTokenException();
 		}
@@ -284,13 +289,13 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean J() throws Exception {
+	public static boolean compound_stmt() throws Exception {
 		// 23 J-> { K' L' }
 
 		if (AreStringsSimilar(t.ID, "{")) {
 			Pop();
-			K();
-			L();
+			local_declaration();
+			stmt_list();
 			if (AreStringsSimilar(t.ID, "}")) {
 				Pop();
 				return true;
@@ -302,12 +307,12 @@ public class LexicalAnalyzer {
 		}
 	}
 	
-	public static boolean K() throws Exception{
-		K_P();
+	public static boolean local_declaration() throws Exception{
+		local_declaration_p();
 		return true;
 	}
 
-	public static boolean K_P() throws Exception {
+	public static boolean local_declaration_p() throws Exception {
 		if (!(IsTokenInSet(Arrays.asList("int", "float", "void", "(", "{", "}",
 				"if", "while", "return"))
 				|| t.Type == TokenType.Int
@@ -317,20 +322,20 @@ public class LexicalAnalyzer {
 		// 24: K'-> D K'
 		if (AreStringsSimilar(t.ID, "int") || AreStringsSimilar(t.ID, "void")
 				|| AreStringsSimilar(t.ID, "float")) {
-			D();
-			K();
+			var_dec();
+			local_declaration();
 		}
 
 		// 25 K'->empty
 		return true;
 	}
 
-	public static boolean L() throws Exception{
-		L_P();
+	public static boolean stmt_list() throws Exception{
+		stmt_list_p();
 		return true;
 	}
 	
-	public static boolean L_P() throws Exception {
+	public static boolean stmt_list_p() throws Exception {
 		if (!(IsTokenInSet(Arrays
 				.asList("(", "{", "if", "while", "return", "}"))
 				|| t.Type == TokenType.Int || t.Type == TokenType.Float || IsTokenInSymbolTable(t))) {
@@ -342,35 +347,35 @@ public class LexicalAnalyzer {
 			return true;
 		} else {
 			// 26 L'-> M L'
-			M();
-			L();
+			statement();
+			stmt_list();
 		}
 		return true;
 	}
 
-	public static boolean M() throws Exception {
+	public static boolean statement() throws Exception {
 
 		// 28: M-> N (applies to Float, Int, id, (, ; )
 		if (AreStringsSimilar(t.ID, "(") || IsTokenInSymbolTable(t)
 				|| AreStringsSimilar(t.ID, ";") || t.Type == TokenType.Float
 				|| t.Type == TokenType.Int) {
-			N();
+			expression_stmt();
 		} else
 		// 29: M->J
 		if (AreStringsSimilar(t.ID, "{")) {
-			J();
+			compound_stmt();
 		} else
 		// 30: M-> O
 		if (AreStringsSimilar(t.ID, "if")) {
-			O();
+			selection_stmt();
 		} else
 		// 31 M->P
 		if (AreStringsSimilar(t.ID, "while")) {
-			P();
+			iteration_stmt();
 		} else
 		// 32 M->Q
 		if (AreStringsSimilar(t.ID, "return")) {
-			Q();
+			return_stmt();
 		} else {
 			throw new UnexpectedTokenException();
 		}
@@ -378,11 +383,11 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean N() throws Exception {
+	public static boolean expression_stmt() throws Exception {
 		// 33: N-> R ;
 		if (AreStringsSimilar(t.ID, "(") || IsTokenInSymbolTable(t)
 				|| t.Type == TokenType.Float || t.Type == TokenType.Int) {
-			R();
+			expression();
 		}
 
 		// 34: N-> ;
@@ -395,17 +400,17 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean O() throws Exception {
+	public static boolean selection_stmt() throws Exception {
 		// 35: O-> if( R ) M O'
 		if (AreStringsSimilar(t.ID, "if")) {
 			Pop();
 			if (AreStringsSimilar(t.ID, "(")) {
 				Pop();
-				R();
+				expression();
 				if (AreStringsSimilar(t.ID, ")")) {
 					Pop();
-					M();
-					O_P();
+					statement();
+					selection_stmt_p();
 					return true;
 				} else {
 					throw new UnexpectedTokenException();
@@ -418,32 +423,32 @@ public class LexicalAnalyzer {
 		}
 	}
 
-	public static boolean O_P() throws Exception {
+	public static boolean selection_stmt_p() throws Exception {
 
-		if (!(IsTokenInSet(Arrays.asList("(", "{", "if", "while", "return",
+		if (!(IsTokenInSet(Arrays.asList("(", "{", "if", "while", "return","}",
 				"else")) || IsTokenInSymbolTable(t) || t.Type == TokenType.Int || t.Type == TokenType.Float)) {
 			throw new UnexpectedTokenException();
 		}
 		// 36: O'->else M
 		if (AreStringsSimilar(t.ID, "else")) {
 			Pop();
-			M();
+			statement();
 		}
 
 		// 37: O'-> empty
 		return true;
 	}
 
-	public static boolean P() throws Exception {
+	public static boolean iteration_stmt() throws Exception {
 		// 38: P-> while ( R ) M
 		if (AreStringsSimilar(t.ID, "while")) {
 			Pop();
 			if (AreStringsSimilar(t.ID, "(")) {
 				Pop();
-				R();
+				expression();
 				if (AreStringsSimilar(t.ID, ")")) {
 					Pop();
-					M();
+					statement();
 					return true;
 				} else {
 					throw new UnexpectedTokenException();
@@ -457,11 +462,11 @@ public class LexicalAnalyzer {
 
 	}
 
-	public static boolean Q() throws Exception {
+	public static boolean return_stmt() throws Exception {
 		// 39: Q->return Q'
 		if (AreStringsSimilar(t.ID, "return")) {
 			Pop();
-			Q_P();
+			return_stmt_p();
 		} else {
 			throw new UnexpectedTokenException();
 		}
@@ -469,11 +474,11 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean Q_P() throws Exception {
+	public static boolean return_stmt_p() throws Exception {
 		// 41: Q'=>R;
 		if (IsTokenInSymbolTable(t) || t.Type == TokenType.Int
 				|| t.Type == TokenType.Float || AreStringsSimilar(t.ID, "(")) {
-			R();
+			expression();
 		}
 		// 40: Q'=>;
 		if (AreStringsSimilar(t.ID, ";")) {
@@ -485,22 +490,22 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean R() throws Exception {
+	public static boolean expression() throws Exception {
 
 		// 43: R-> id R'
 		if (IsTokenInSymbolTable(t)) {
 			Pop();
-			R_P();
+			expression_p();
 		} else
 		// 44: R=> (R) X' V' T'
 		if (AreStringsSimilar(t.ID, "(")) {
 			Pop();
-			R();
+			expression();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
-				X_P();
-				V_P();
-				T_P();
+				term_p();
+				add_exp();
+				simple_expression();
 			} else {
 				throw new UnexpectedTokenException();
 			}
@@ -508,9 +513,9 @@ public class LexicalAnalyzer {
 				// 46: R-> floatnum X' V' T'
 		if (t.Type == TokenType.Int || t.Type == TokenType.Float) {
 			Pop();
-			X_P();
-			V_P();
-			T_P();
+			term_p();
+			add_exp();
+			simple_expression();
 		} else {
 
 			throw new UnexpectedTokenException();
@@ -519,43 +524,44 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean R_P() throws Exception {
-		// 48: R'-> (AB)X'V'T'
-		if (AreStringsSimilar(t.ID, "(")) {
+	public static boolean expression_p() throws Exception {
+		
+		if (!AreStringsSimilar(t.ID, "(")) {
+			// 47: R'-> S' R''
+						var();
+						expression_pp();
+		} else {
+			// 48: R'-> (AB)X'V'T'
 			Pop();
-			DELTA();
+			args();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
-				X_P();
-				V_P();
-				T_P();
+				term_p();
+				add_exp();
+				simple_expression();
 			} else {
 				throw new UnexpectedTokenException();
 			}
-		} else {
-			// 47: R'-> S' R''
-			S_P();
-			R_PP();
 		}
 		return true;
 	}
 
-	public static boolean R_PP() throws Exception {
+	public static boolean expression_pp() throws Exception {
 		// 49: R''=> = R
 		if (AreStringsSimilar(t.ID, "=")) {
 			Pop();
-			R();
+			expression();
 		}
 		// 50: R''-> X' V' T'
 		else {
-			X_P();
-			V_P();
-			T_P();
+			term_p();
+			add_exp();
+			simple_expression();
 		}
 		return true;
 	}
 
-	public static boolean S_P() throws Exception {
+	public static boolean var() throws Exception {
 
 		if (!(IsTokenInSet(Arrays.asList("=", "*", "/", "+", "-", "[", ";","(",
 				")", ",", "]")) || t.Type == TokenType.Logic)) {
@@ -565,7 +571,7 @@ public class LexicalAnalyzer {
 		// 51: S'-> [R]
 		if (AreStringsSimilar(t.ID, "[")) {
 			Pop();
-			R();
+			expression();
 			if (AreStringsSimilar(t.ID, "]")) {
 				Pop();
 			} else {
@@ -574,30 +580,30 @@ public class LexicalAnalyzer {
 		}
 		else if(AreStringsSimilar(t.ID, "("))
 		{
-			Z_P();
+			call();
 		}
 
 		// 52 S' -> empty
 		return true;
 	}
 
-	public static boolean T_P() throws Exception {
+	public static boolean simple_expression() throws Exception {
 
 		if (!(IsTokenInSet(Arrays.asList("]", ")", ";", ",", ")", ",", "]", "(")) || t.Type == TokenType.Logic)) {
 			throw new UnexpectedTokenException();
 		}
 		// 53: T'-> U V T'
 		if (t.Type == TokenType.Logic) {
-			U();
+			logic_op();
 			V();
-			T_P();
+			simple_expression();
 		}
 
 		// 54: T'-> empty
 		return true;
 	}
 
-	public static boolean U() throws Exception {
+	public static boolean logic_op() throws Exception {
 		// 55-60: U=> Logic Operator
 		if (t.Type == TokenType.Logic) {
 			Pop();
@@ -610,28 +616,28 @@ public class LexicalAnalyzer {
 
 	public static boolean V() throws Exception {
 		// 61: V-> X V'
-		X();
-		V_P();
+		term();
+		add_exp();
 		return true;
 	}
 
-	public static boolean V_P() throws Exception {
+	public static boolean add_exp() throws Exception {
 
 		if (!(IsTokenInSet(Arrays.asList("+", "-", ";", ")", ",", "]", "(")) || t.Type == TokenType.Logic)) {
 			throw new UnexpectedTokenException();
 		}
 		// 62: V'-> W X V'
 		if (AreStringsSimilar(t.ID, "+") || AreStringsSimilar(t.ID, "-")) {
-			W();
-			X();
-			V_P();
+			add_op();
+			term();
+			add_exp();
 		}
 
 		// 63: V'-> EMPTY
 		return true;
 	}
 
-	public static boolean W() throws Exception {
+	public static boolean add_op() throws Exception {
 		// 64: W=>+; 65: W=>-
 		if (AreStringsSimilar(t.ID, "+") || AreStringsSimilar(t.ID, "-")) {
 			Pop();
@@ -642,14 +648,15 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean X() throws Exception {
-		// 66: X-> Z X'
-		Z();
-		X_P();
+	public static boolean term() throws Exception {
+		// 66: X-> Z X' | 
+		
+		factor();
+		term_p();
 		return true;
 	}
 
-	public static boolean X_P() throws Exception {
+	public static boolean term_p() throws Exception {
 
 		if (!(IsTokenInSet(Arrays
 				.asList("+", "-", "*", "/", ";", ")", ",", "]", "(")) || t.Type == TokenType.Logic)) {
@@ -658,16 +665,16 @@ public class LexicalAnalyzer {
 
 		// 67: X'-> Y Z X'
 		if (AreStringsSimilar(t.ID, "*") || AreStringsSimilar(t.ID, "/")) {
-			Y();
-			Z();
-			X_P();
+			mulop();
+			factor();
+			term_p();
 		}
 
 		// 68: X'-> EMPTY
 		return true;
 	}
 
-	public static boolean Y() throws Exception {
+	public static boolean mulop() throws Exception {
 		// 67, 70: Y-> *|/
 		if (AreStringsSimilar(t.ID, "*") || AreStringsSimilar(t.ID, "/")) {
 			Pop();
@@ -677,7 +684,7 @@ public class LexicalAnalyzer {
 		return true;
 	}
 
-	public static boolean Z() throws Exception {
+	public static boolean factor() throws Exception {
 		if (!(IsTokenInSet(Arrays.asList("(")) || t.Type == TokenType.Int
 				|| t.Type == TokenType.Float || IsTokenInSymbolTable(t))) {
 			throw new UnexpectedTokenException();
@@ -685,7 +692,7 @@ public class LexicalAnalyzer {
 		// 71: Z->(R)
 		if (AreStringsSimilar(t.ID, "(")) {
 			Pop();
-			R();
+			expression();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
 			} else {
@@ -695,24 +702,24 @@ public class LexicalAnalyzer {
 		// 72: Z->id S'
 		if (IsTokenInSymbolTable(t)) {
 			Pop();
-			S_P();
+			var();
 
 		} else
 		// 73, 74: Z-> num, floatnum
 		if (t.Type == TokenType.Int || t.Type == TokenType.Float) {
 			Pop();
 		} else {
-			Z_P();
+			call();
 		}
 		return true;
 	}
 
-	public static boolean Z_P() throws Exception {
+	public static boolean call() throws Exception {
 
 		// 76:Z'->(delta)
 		if (AreStringsSimilar(t.ID, "(")) {
 			Pop();
-			DELTA();
+			args();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
 			} else {
@@ -720,12 +727,12 @@ public class LexicalAnalyzer {
 			}
 		} else {
 			// 75: Z'-> S'
-			S_P();
+			var();
 		}
 		return true;
 	}
 
-	public static boolean DELTA() throws Exception {
+	public static boolean args() throws Exception {
 		if (!(IsTokenInSet(Arrays.asList("(", ")")) || t.Type == TokenType.Int
 				|| t.Type == TokenType.Float || IsTokenInSymbolTable(t))) {
 			throw new UnexpectedTokenException();
@@ -737,19 +744,19 @@ public class LexicalAnalyzer {
 		} else
 		// 77: DELTA -> Beta
 		{
-			BETA();
+			args_list();
 		}
 		return true;
 	}
 
-	public static boolean BETA() throws Exception {
+	public static boolean args_list() throws Exception {
 		// 79: beta-> R gamma
-		R();
-		GAMMA();
+		expression();
+		args_list_p();
 		return true;
 	}
 
-	public static boolean GAMMA() throws Exception {
+	public static boolean args_list_p() throws Exception {
 
 		if (!(IsTokenInSet(Arrays.asList(";", ",", ")")))) {
 			throw new UnexpectedTokenException();
@@ -758,8 +765,8 @@ public class LexicalAnalyzer {
 		// 80:; gamma->, R gamma
 		if (AreStringsSimilar(t.ID, ",")) {
 			Pop();
-			R();
-			GAMMA();
+			expression();
+			args_list_p();
 		}
 		// 81: GAMMA -> empty
 		return true;

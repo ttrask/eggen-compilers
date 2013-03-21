@@ -1,10 +1,18 @@
+
+
 int fib(int n)
 {
 	int result;
+	
+	r=(((x+1))*((x/(x-y))));
+	b=bbbb/123432*5+ func(r, b);
+	return num+5*num;
+	
 	if (n < 2)
 		return n;
 
-	result = fib(n-1) + (fib(n-2) * fib(n-3));
+	fib(4, string);
+	result = fib(n-1, string) + (fib(n-2) * fib(n-3));
 	return result;
 }
 
