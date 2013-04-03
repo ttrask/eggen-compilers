@@ -15,6 +15,7 @@ int car(int j)
 
 void monkey(int x, int y)
 {
+	z = 3;
    int q;    
    void a[4];
    int b;
@@ -31,7 +32,7 @@ void monkey(int x, int y)
    
    if (c==b)
    {
-   		int x;
+   		float x;
    		float y;
        a[car(1)]=3;
        a[2+1]=3;
