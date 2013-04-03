@@ -1,3 +1,5 @@
+
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,8 +17,9 @@ public class Tokenizer {
 	public List<String> Keywords = Arrays.asList("else", "if", "int", "float",
 			"void", "return", "void", "while");
 	public List<String> ArithmeticOperators = Arrays.asList("+", "-");
-	public List<String> AssignmentOperators = Arrays.asList("*", "/", "<", "=");
-	public List<String> LogicOperators = Arrays.asList("<=", ">", ">=", "==",
+	public List<String> AssignmentOperators = Arrays.asList("*", "/", "=",
+			";", ",");
+	public List<String> LogicOperators = Arrays.asList("<=", ">", ">=", "==", "<",
 			"!=");
 	public List<String> BlockOperators = Arrays.asList("{", "}", "[", "]");
 	public List<String> ArgumentOperators = Arrays.asList("(", ")", ",", ";");
@@ -147,7 +150,10 @@ public class Tokenizer {
 					// if it is, process it as a number. (floats are
 					// valid
 					// numbers)
-					tk.Type = TokenType.Num;
+					if(IsInt(s))
+						tk.Type = TokenType.Int;
+					else
+						tk.Type = TokenType.Float;
 				} else
 				// check to see if its a word.
 				// if it is, process it as an identifier.
@@ -172,41 +178,26 @@ public class Tokenizer {
 	public List<Token> ParseComment(String s) {
 		// add logic to parse comments.
 
-		if (s.contains("/*") && s.contains("*/")) {
-			String newS = "";
+		String subS = "";
 
-			// for (int i = s.length() - 1; i > 1; i--) {
-			// char c = s.charAt(i);
-			// newS += c;
-			// if (c == '/') {
-			// if (s.charAt(i - 1) == '*')
-			// if (i > 1 && s.charAt(i - 2) != '/') {
-			// if(i==2 || (i>2 && s.charAt(i-3) !='*')){
-			// i -= 1;
-			// newS += "* ";
-			// }
-			// }
-			//
-			// }
-			//
-			// }
-			// newS+= s.charAt(0);
-			//
-			// s = ReverseString(newS);
+		if ((s.contains("/*") || s.contains("*/"))
+				&& !(s.compareTo("/*") == 0 || (s.compareTo("*/") == 0))) {
 
-			s = s.replace("*/", " */ ");
-			s = s.replace("/*", " /* ");
-			return TokenizeString(s);
-		}
+			for (int i = 0; i < s.length() - 1; i++) {
+				String s2 = s.substring(i, i + 2);
+				if (s2.compareTo("/*") == 0 || s2.compareTo("*/") == 0) {
+					i++;
+					subS += " " + s2 + " ";
+				}
 
-		if (s.endsWith("*/") && !s.contains("*/*")) {
-			if (_commentDepth > 0) {
-				_commentDepth--;
-			} else
-				return TokenizeString(SpaceifyStringContainingOperators(s,
-						AssignmentOperators));
-		} else if (s.contains("*/")) {
-			s = s.replace("*/", " */ ");
+				else
+					subS += s.toCharArray()[i];
+			}
+
+			if (!(s.endsWith("/*") || s.endsWith("*/")))
+				subS += s.substring(s.length() - 1);
+
+			s = subS;
 			return TokenizeString(s);
 		}
 
@@ -215,22 +206,17 @@ public class Tokenizer {
 			_isFullLineComment = true;
 			return new ArrayList<Token>();
 
-		} else if (s.startsWith("/*")) {
-			if (s.compareTo("/*") == 0)
-				_commentDepth++;
-			else {
-				s = s.replace("/*", " /* ");
-				TokenizeString(s);
-			}
-		} else if (s.contains("/*")) {
-			s = s.replace("/*", " /*");
-			return TokenizeString(s);
 		}
 
-		// if (!s.startsWith("/*") && !s.endsWith("*/") && s.contains("/*")
-		// && _commentDepth == 0)
-		// return TokenizeString(SpaceifyStringContainingOperators(s,
-		// AssignmentOperators));
+		if (s.compareTo("/*") == 0) {
+			_commentDepth += 1;
+		} else if (s.compareTo("*/") == 0) {
+			if (_commentDepth > 0)
+				_commentDepth -= 1;
+			else
+				return TokenizeString(SpaceifyStringContainingOperators(s,
+						AssignmentOperators));
+		}
 
 		return new ArrayList<Token>();
 	}
@@ -259,15 +245,19 @@ public class Tokenizer {
 		return false;
 	}
 
+	public boolean IsNumeric(String s){
+		return s.matches("[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?");
+	}
+	
 	// checks to see if the input string is a number.
 	// Valid numbers are:
 	// integers
 	// floats: (+/-)numbers(optional .Numbers)(optional E/e[Numbers])
 	// valid floats: 5E10 1.5e5 1.4,
 	// invalid floats 1.E, 1., 1E
-	public boolean IsNumeric(String s) {
+	public boolean IsInt(String s) {
 
-		return s.matches("[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?");
+		return s.matches("^\\d+$");
 	}
 
 	// checks to see if the input string a variable
@@ -278,14 +268,6 @@ public class Tokenizer {
 		return s.matches("^[a-zA-Z]+[a-zA-Z0-9]?+$");
 		// alpha valid varname
 		// return s.matches("^[a-zA-Z]+$");
-	}
-
-	public String ReverseString(String s) {
-		char[] reverseStringArray = new char[s.length()];
-		for (int i = s.length() - 1, j = 0; i != -1; i--, j++) {
-			reverseStringArray[j] = s.charAt(i);
-		}
-		return new String(reverseStringArray);
 	}
 
 }
