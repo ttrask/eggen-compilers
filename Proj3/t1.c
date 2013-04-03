@@ -13,13 +13,15 @@ int car(int j)
    return 3;
 }
 
-void monkey(void)
+void monkey(int x, int y)
 {
    int q;    
    void a[4];
    int b;
+   //int x;
    void c;
-
+   //int b;
+   
    b=b/2;
    while (b==3)
    {
