@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import exception.*;
+
 import Proj1.*;
 
 public class LexicalAnalyzer {

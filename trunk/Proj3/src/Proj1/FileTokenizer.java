@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import exception.*;
 
 public class FileTokenizer {
 
@@ -128,9 +129,9 @@ public class FileTokenizer {
 									isVarDeclaration = true;
 									t.Metatype = TokenType.Void;
 									break;
-
 								}
 
+								t.IsVarDeclaration = isVarDeclaration;
 								// if the variable has been flagged as a
 								// function,
 
@@ -138,9 +139,24 @@ public class FileTokenizer {
 									t.ReturnType = t.Metatype;
 									t.Metatype = TokenType.Function;
 								}
+								else{
+									if(!isVarDeclaration && !IsTokenInSymbolTable(t)){
+										throw new SymbolNotFoundException();
+									}
+								}
 
 								if (isVarDeclaration && !(t.Metatype == TokenType.Function && t.Depth > 0)) {
-									AddTokenToSmybolTable(t);
+									if(IsTokenLocallyDeclared(t.ID, t.ParentId, false)){
+										if(!IsTokenLocallyDeclared(t.ID, t.ParentId, true))
+											AddTokenToSmybolTable(t);
+										else{
+											throw new LocalException("Local variable declared twice.");
+										}
+									}
+									else{
+										AddTokenToSmybolTable(t);
+									}
+									
 								}
 							} else {
 								switch (t.ID) {
@@ -150,6 +166,7 @@ public class FileTokenizer {
 										isFuncDec = false;
 										AddTokenToSmybolTable(parentFunction);
 										parentId = parentFunction.TokenId;
+										t.ParentId = parentId;
 										blockDepth = 1;
 									}
 									break;
@@ -195,8 +212,8 @@ public class FileTokenizer {
 			println("There was an error reading the input file:"
 					+ ex.getMessage());
 			_isFileGood = false;
-		} catch (Exception ex) {
-			println("There was an error processing the file tokens.");
+		} catch (LocalException ex) {
+			println("There was an error processing the file tokens: " + ex.ExceptionMessage);
 		}
 
 		return _isFileGood;
@@ -206,14 +223,14 @@ public class FileTokenizer {
 	// with the same Name&Depth.
 	// TODO: Add logic to give each code block a unique id.
 
-	public static void AddTokenToSmybolTable(Token t) throws Exception {
+	public static void AddTokenToSmybolTable(Token t) throws LocalException {
 		for (Token s : _Symbols) {
 			if (s.ID.compareTo(t.ID) == 0)
 				if (s.Metatype != TokenType.Function) {
 					// if the variable is declared twice locally, throw an
 					// error.
 					if (IsTokenLocallyDeclared(t.ID, t.ParentId, true)) {
-						throw new Exception();
+						throw new LocalException("locally defined token already exists.");
 					}
 					break;
 				} else {
@@ -237,7 +254,7 @@ public class FileTokenizer {
 		Token parentToken = null;
 		for (Token t : _Tokens) {
 			if (t.Type == TokenType.ID && t.ID.compareTo(id) == 0
-					&& t.ParentId == parentId) {
+					&& t.ParentId == parentId && t.IsVarDeclaration) {
 				return true;
 			}
 			if (t.TokenId == parentId) {
