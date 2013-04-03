@@ -1,8 +1,9 @@
 package Proj1;
 
 import java.util.List;
+
 public class Token {
-	
+
 	public int TokenId;
 	public int ParentId;
 	public String ID;
@@ -17,5 +18,6 @@ public class Token {
 	public List<TokenType> FuncParams;
 	public Boolean IsArray;
 	public Boolean isInitialized;
+	public Boolean IsVarDeclaration = false;
+	public Boolean IsFuncDeclaration = false;
 }
-

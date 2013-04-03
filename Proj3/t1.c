@@ -7,7 +7,7 @@ void func(void){
 
 int car(int j)
 {
-   int q[3];
+   float q[3];
 
    q=j+4;
    return 3;
@@ -31,6 +31,8 @@ void monkey(int x, int y)
    
    if (c==b)
    {
+   		int x;
+   		float y;
        a[car(1)]=3;
        a[2+1]=3;
        c=car(4);
