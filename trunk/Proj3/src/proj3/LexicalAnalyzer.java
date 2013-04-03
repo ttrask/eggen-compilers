@@ -49,7 +49,8 @@ public class LexicalAnalyzer {
 			_isValid = true;
 		} catch (UnexpectedTokenException e) {
 			System.out.println("Error parsing input file: Unexpected Token");
-			System.out.println("Error on line " + t.SourceLineNumber+": " + t.SourceLine);
+			System.out.println("Error on line " + t.SourceLineNumber + ": "
+					+ t.SourceLine);
 			System.out.println("Error on token: " + t.ID);
 			_isValid = false;
 		} catch (InvalidEndOfFileException e) {
@@ -111,14 +112,15 @@ public class LexicalAnalyzer {
 			if (!IsTokenInSymbolTable(t)) {
 				throw new UnexpectedTokenException();
 			} else {
+				
 				TokenType meta = t.Metatype;
 				TokenType rt = t.ReturnType;
-				
+
 				Pop();
-				
+
 				TokenType returnType = dec_p();
-				
-				if(t.Metatype == TokenType.Function && returnType != rt){
+
+				if (t.Metatype == TokenType.Function && returnType != rt) {
 					throw new InvalidTypeException();
 				}
 			}
@@ -212,7 +214,7 @@ public class LexicalAnalyzer {
 		if (AreStringsSimilar(t.ID, "int") || AreStringsSimilar(t.ID, "void")
 				|| AreStringsSimilar(t.ID, "float")) {
 			Pop();
-			return TokenType.Unknown;
+			return ConvertStringToType(t.ID);
 		} else {
 			throw new UnexpectedTokenException();
 		}
@@ -228,8 +230,8 @@ public class LexicalAnalyzer {
 		// 16 G=> void
 		if (AreStringsSimilar(t.ID, "void")) {
 			Pop();
-			//special case of passing in a void parameter
-			if(IsTokenInSymbolTable(t)){
+			// special case of passing in a void parameter
+			if (IsTokenInSymbolTable(t)) {
 				return params_p();
 			}
 			return TokenType.Unknown;
@@ -303,7 +305,7 @@ public class LexicalAnalyzer {
 		if (AreStringsSimilar(t.ID, "{")) {
 			Pop();
 			local_declaration();
-		    TokenType rStmt = 	stmt_list();
+			TokenType rStmt = stmt_list();
 			if (AreStringsSimilar(t.ID, "}")) {
 				Pop();
 				return rStmt;
@@ -314,10 +316,10 @@ public class LexicalAnalyzer {
 			throw new UnexpectedTokenException();
 		}
 	}
-	
-	public static TokenType local_declaration() throws Exception{
+
+	public static TokenType local_declaration() throws Exception {
 		return local_declaration_p();
-		
+
 	}
 
 	public static TokenType local_declaration_p() throws Exception {
@@ -338,15 +340,16 @@ public class LexicalAnalyzer {
 		return TokenType.Unknown;
 	}
 
-	public static TokenType stmt_list() throws Exception{
+	public static TokenType stmt_list() throws Exception {
 		return stmt_list_p();
-		
+
 	}
-	
+
 	public static TokenType stmt_list_p() throws Exception {
-		if (!(IsTokenInSet(Arrays
-				.asList("(", "{", "if", "while", "return", "}"))
-				|| t.Type == TokenType.Int || t.Type == TokenType.Float || IsTokenInSymbolTable(t))) {
+		if (!(IsTokenInSet(Arrays.asList("(", "{", "if", "while", "return",
+				"}", ";"))
+				|| t.Type == TokenType.Int
+				|| t.Type == TokenType.Float || IsTokenInSymbolTable(t))) {
 			throw new UnexpectedTokenException();
 		}
 
@@ -358,7 +361,7 @@ public class LexicalAnalyzer {
 			statement();
 			return stmt_list();
 		}
-		
+
 	}
 
 	public static TokenType statement() throws Exception {
@@ -432,8 +435,10 @@ public class LexicalAnalyzer {
 
 	public static TokenType selection_stmt_p() throws Exception {
 
-		if (!(IsTokenInSet(Arrays.asList("(", "{", "if", "while", "return","}",
-				"else")) || IsTokenInSymbolTable(t) || t.Type == TokenType.Int || t.Type == TokenType.Float)) {
+		if (!(IsTokenInSet(Arrays.asList("(", "{", "if", "while", "return",
+				"}", "else"))
+				|| IsTokenInSymbolTable(t)
+				|| t.Type == TokenType.Int || t.Type == TokenType.Float)) {
 			throw new UnexpectedTokenException();
 		}
 		// 36: O'->else M
@@ -476,7 +481,7 @@ public class LexicalAnalyzer {
 			return return_stmt_p();
 		} else {
 			throw new UnexpectedTokenException();
-		}		
+		}
 	}
 
 	public static TokenType return_stmt_p() throws Exception {
@@ -530,11 +535,11 @@ public class LexicalAnalyzer {
 	}
 
 	public static TokenType expression_p() throws Exception {
-		
+
 		if (!AreStringsSimilar(t.ID, "(")) {
 			// 47: R'-> S' R''
-						var();
-						expression_pp();
+			var();
+			expression_pp();
 		} else {
 			// 48: R'-> (AB)X'V'T'
 			Pop();
@@ -559,8 +564,8 @@ public class LexicalAnalyzer {
 		}
 		// 50: R''-> X' V' T'
 		else {
-			TokenType type =term_p(); 
-			if(type != add_exp()){
+			TokenType type = term_p();
+			if (type != add_exp()) {
 				throw new InvalidTypeException();
 			}
 			add_exp();
@@ -571,8 +576,8 @@ public class LexicalAnalyzer {
 
 	public static TokenType var() throws Exception {
 
-		if (!(IsTokenInSet(Arrays.asList("=", "*", "/", "+", "-", "[", ";","(",
-				")", ",", "]")) || t.Type == TokenType.Logic)) {
+		if (!(IsTokenInSet(Arrays.asList("=", "*", "/", "+", "-", "[", ";",
+				"(", ")", ",", "]")) || t.Type == TokenType.Logic)) {
 			throw new UnexpectedTokenException();
 		}
 
@@ -585,9 +590,7 @@ public class LexicalAnalyzer {
 			} else {
 				throw new UnexpectedTokenException();
 			}
-		}
-		else if(AreStringsSimilar(t.ID, "("))
-		{
+		} else if (AreStringsSimilar(t.ID, "(")) {
 			call();
 		}
 
@@ -597,7 +600,8 @@ public class LexicalAnalyzer {
 
 	public static TokenType simple_expression() throws Exception {
 
-		if (!(IsTokenInSet(Arrays.asList("]", ")", ";", ",", ")", ",", "]", "(")) || t.Type == TokenType.Logic)) {
+		if (!(IsTokenInSet(Arrays
+				.asList("]", ")", ";", ",", ")", ",", "]", "(")) || t.Type == TokenType.Logic)) {
 			throw new UnexpectedTokenException();
 		}
 		// 53: T'-> U V T'
@@ -657,8 +661,8 @@ public class LexicalAnalyzer {
 	}
 
 	public static TokenType term() throws Exception {
-		// 66: X-> Z X' | 
-		
+		// 66: X-> Z X' |
+
 		factor();
 		term_p();
 		return TokenType.Unknown;
@@ -666,16 +670,16 @@ public class LexicalAnalyzer {
 
 	public static TokenType term_p() throws Exception {
 
-		if (!(IsTokenInSet(Arrays
-				.asList("+", "-", "*", "/", ";", ")", ",", "]", "(")) || t.Type == TokenType.Logic)) {
+		if (!(IsTokenInSet(Arrays.asList("+", "-", "*", "/", ";", ")", ",",
+				"]", "(")) || t.Type == TokenType.Logic)) {
 			throw new UnexpectedTokenException();
 		}
 
 		// 67: X'-> Y Z X'
 		if (AreStringsSimilar(t.ID, "*") || AreStringsSimilar(t.ID, "/")) {
-			TokenType t1 = mulop(); 
+			TokenType t1 = mulop();
 			TokenType t2 = factor();
-			if(t1 != t2)
+			if (t1 != t2)
 				throw new InvalidTypeException();
 			term_p();
 		}
@@ -815,6 +819,21 @@ public class LexicalAnalyzer {
 
 		// if the string wasn't in the set, return false
 		return false;
+	}
+
+	private static TokenType ConvertStringToType(String type) {
+		switch (type.toLowerCase()) {
+		case "id":
+			return TokenType.ID;
+		case "int":
+			return TokenType.Int;
+		case "void":
+			return TokenType.Void;
+		case "float":
+			return TokenType.Float;
+		default:
+			return TokenType.Unknown;
+		}
 	}
 
 }
