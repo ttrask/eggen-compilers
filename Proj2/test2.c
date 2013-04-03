@@ -11,6 +11,7 @@ int minloc(int a[], int low, int high)
 	
 	k = low;
 	x = a[low];
+	minloc(a[4], a[3]);
 	i = low + 1;
 	while (i < test ) {
 		if (a[i] < x) {

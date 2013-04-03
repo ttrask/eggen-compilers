@@ -15,7 +15,7 @@ int car(int j)
 
 void monkey(int x, int y)
 {
-	z = 3;
+	
    int q;    
    void a[4];
    int b;
