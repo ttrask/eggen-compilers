@@ -1,26 +1,28 @@
 /* should parse while and if and function */
 int q;
 
-void func(void){
-	return;
+int func(void){
+	return 1;
 }
 
 int car(int j)
 {
-   float q[3];
+   int q[3];
+	return 2;
+   q = func();
+   return 3*1 + j*2;
+}
 
-   q=j+4;
-   return 3*5;
+void test2(int y, float z, int x, void t){
+	return;
 }
 
 void monkey(int x, int y)
 {
-	
-   int q;    
-   void a[4];
+   float a[4];
    int b;
    //int x;
-   void c;
+   int c;
    //int b;
    
    b=b/2;
@@ -34,8 +36,9 @@ void monkey(int x, int y)
    {
    		float x;
    		float y;
+   		
+       a[2+1]=3.1;
        a[car(1)]=3;
-       a[2+1]=3;
        c=car(4);
    }
    
