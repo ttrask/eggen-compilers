@@ -10,7 +10,7 @@ int car(int j)
    float q[3];
 
    q=j+4;
-   return 3;
+   return 3*5;
 }
 
 void monkey(int x, int y)

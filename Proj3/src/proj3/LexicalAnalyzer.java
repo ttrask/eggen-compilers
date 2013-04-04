@@ -121,7 +121,9 @@ public class LexicalAnalyzer {
 				TokenType returnType = dec_p();
 
 				if (meta == TokenType.Function && returnType != rt) {
-					throw new InvalidTypeException("Invalid return type.  Expecting: " + rt+ "; Returned " + returnType);
+					throw new InvalidTypeException(
+							"Invalid return type.  Expecting: " + rt
+									+ "; Returned " + returnType);
 				}
 			}
 		}
@@ -131,7 +133,7 @@ public class LexicalAnalyzer {
 	}
 
 	public static TokenType dec_p() throws Exception {
-		TokenType t1 = TokenType.Unknown; 
+		TokenType t1 = TokenType.Unknown;
 		if (!IsTokenInSet(Arrays.asList("(", "[", ";"))) {
 			throw new UnexpectedTokenException();
 		}
@@ -142,7 +144,7 @@ public class LexicalAnalyzer {
 			params();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
-				//get return type of compound statement;
+				// get return type of compound statement;
 				t1 = compound_stmt();
 			} else {
 				throw new UnexpectedTokenException();
@@ -361,10 +363,11 @@ public class LexicalAnalyzer {
 			// 26 L'-> M L'
 			TokenType t1 = statement();
 			TokenType t2 = stmt_list();
-			if(t2 == TokenType.Float || t2 == TokenType.Int || t2 == TokenType.Void ){
+			if (t2 == TokenType.Float || t2 == TokenType.Int
+					|| t2 == TokenType.Void) {
 				return t2;
-			}
-			else return t1;
+			} else
+				return t1;
 		}
 
 	}
@@ -510,8 +513,12 @@ public class LexicalAnalyzer {
 
 		// 43: R-> id R'
 		if (IsTokenInSymbolTable(t)) {
+			t1 = TokenType.valueOf(t.Type.toString());
 			Pop();
-			return expression_p();
+			t2 = expression_p();
+			CheckTypeConcurrency(t1, t2);
+			
+			return t2;
 		} else
 		// 44: R=> (R) X' V' T'
 		if (AreStringsSimilar(t.ID, "(")) {
@@ -532,24 +539,31 @@ public class LexicalAnalyzer {
 		} else // 45: R-> num X' V' T'
 				// 46: R-> floatnum X' V' T'
 		if (t.Type == TokenType.Int || t.Type == TokenType.Float) {
+			t1 = t.Type;
 			Pop();
-			term_p();
-			add_exp();
-			simple_expression();
+			t2 = term_p();
+			CheckTypeConcurrency(t1, t2);
+			t2 = add_exp();
+			CheckTypeConcurrency(t1, t2);
+			t2 = simple_expression();
+			CheckTypeConcurrency(t1, t2);
+			return t1;
 		} else {
 
 			throw new UnexpectedTokenException();
 		}
 
-		return TokenType.Unknown;
 	}
 
 	public static TokenType expression_p() throws Exception {
 
+		TokenType t1, t2;
 		if (!AreStringsSimilar(t.ID, "(")) {
-			// 47: R'-> S' R''
-			var();
-			expression_pp();
+			// 47: R'-> S' R'
+			t1 = var();
+			
+			t2 = expression_pp();
+			
 		} else {
 			// 48: R'-> (AB)X'V'T'
 			Pop();
@@ -574,10 +588,7 @@ public class LexicalAnalyzer {
 		}
 		// 50: R''-> X' V' T'
 		else {
-			TokenType type = term_p();
-			if (type != add_exp()) {
-				throw new InvalidTypeException();
-			}
+			term_p();
 			add_exp();
 			simple_expression();
 		}
@@ -619,7 +630,7 @@ public class LexicalAnalyzer {
 			throw new UnexpectedTokenException();
 		}
 		// 53: T'-> U V T'
-		if (t.Type == TokenType.Logic) {
+k		if (t.Type == TokenType.Logic) {
 			logic_op();
 			V();
 			simple_expression();
@@ -648,15 +659,19 @@ public class LexicalAnalyzer {
 	}
 
 	public static TokenType add_exp() throws Exception {
-
+		TokenType t1, t2;
 		if (!(IsTokenInSet(Arrays.asList("+", "-", ";", ")", ",", "]", "(")) || t.Type == TokenType.Logic)) {
 			throw new UnexpectedTokenException();
 		}
 		// 62: V'-> W X V'
 		if (AreStringsSimilar(t.ID, "+") || AreStringsSimilar(t.ID, "-")) {
 			add_op();
-			term();
-			add_exp();
+			t1 = term();
+			t2 = add_exp();
+			if(t2 != TokenType.Unknown)
+			CheckTypeConcurrency(t1, t2);
+			
+			return t1;
 		}
 
 		// 63: V'-> EMPTY
@@ -677,9 +692,13 @@ public class LexicalAnalyzer {
 	public static TokenType term() throws Exception {
 		// 66: X-> Z X' |
 		TokenType t1, t2;
-		factor();
-		term_p();
-		return TokenType.Unknown;
+		t1 = factor();
+		t2 = term_p();
+		
+		if(t2 != TokenType.Int || t2 != TokenType.Float){
+			return t1;
+		}
+		else return t2;
 	}
 
 	public static TokenType term_p() throws Exception {
@@ -693,13 +712,12 @@ public class LexicalAnalyzer {
 		if (AreStringsSimilar(t.ID, "*") || AreStringsSimilar(t.ID, "/")) {
 			t1 = mulop();
 			t2 = factor();
-			if (t1 != t2)
-				throw new InvalidTypeException();
-			term_p();
+
+			return term_p();
 		}
 
 		// 68: X'-> EMPTY
-		return TokenType.Unknown;
+		return t.Type;
 	}
 
 	public static TokenType mulop() throws Exception {
