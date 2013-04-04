@@ -1,7 +1,7 @@
 /* should parse while and if and function */
 int q;
 
-int func(void){
+int func(int j){
 	return 1;
 }
 
@@ -9,7 +9,8 @@ int car(int j)
 {
    int q[3];
 	return 2;
-   q = func();
+	q = func(1);
+   q = func(j+func(1));
    return 3*1 + j*2;
 }
 
