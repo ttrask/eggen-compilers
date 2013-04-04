@@ -591,19 +591,21 @@ public class LexicalAnalyzer {
 			args();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
-				List<TokenType> params = _functionParams.get(Integer.toString(_currentFunctionCallId));
+				List<TokenType> params = _functionParams.get(Integer
+						.toString(_currentFunctionCallId));
 				// add logic to deal with function call parameters.
 				if (func.FuncParams.size() != params.size())
 					throw new LocalException(
 							"Invalid number of function parameters.");
 				for (int i = 0; i < func.FuncParams.size(); i++) {
-					
+
 					if (func.FuncParams.get(i) != params.get(i))
 						throw new LocalException(
 								"Invalid function parameter at:" + i);
 				}
 				_isFunctionCall = false;
-				_functionParams.remove(Integer.toString(_currentFunctionCallId));
+				_functionParams
+						.remove(Integer.toString(_currentFunctionCallId));
 				_currentFunctionCallId = previousFuncId;
 				t1 = term_p();
 				CheckTypeConcurrency(t1, func.ReturnType);
@@ -805,7 +807,7 @@ public class LexicalAnalyzer {
 		// 72: Z->id S' { id[int] }
 		if (IsTokenInSymbolTable(t)) {
 			t1 = t.Type;
-			//add logic for function calls
+			// add logic for function calls
 			Pop();
 			t2 = var();
 			return t2;
@@ -869,7 +871,8 @@ public class LexicalAnalyzer {
 
 	public static TokenType args_list() throws Exception {
 		// 79: beta-> R gamma
-		_functionParams.get(Integer.toString(_currentFunctionCallId)).add(expression());
+		_functionParams.get(Integer.toString(_currentFunctionCallId)).add(
+				expression());
 		args_list_p();
 		return TokenType.Unknown;
 	}
@@ -899,7 +902,8 @@ public class LexicalAnalyzer {
 
 		lastT = t;
 		t = _tokens.get(_tokenIndex);
-		nextT = _tokens.get(_tokenIndex + 1);
+		if (_tokenIndex < _tokens.size() - 1)
+			nextT = _tokens.get(_tokenIndex + 1);
 		// t.ID = t.ID.toUpperCase();
 	}
 
@@ -962,10 +966,14 @@ public class LexicalAnalyzer {
 	private static TokenType GetLastMetatype() {
 		int arrayIndex = 0;
 		int funcCallIndex = 0;
-		for (int i = _tokenIndex; i > 0; i--) {
+		int offset = 0;
+		String currentid = _tokens.get(_tokenIndex).ID;
+		if (_tokenIndex>0 && ( currentid.compareTo(";") == 0 || (currentid.compareTo(")") == 0 && !_isFunctionCall)))
+			offset = 1;
+		for (int i = _tokenIndex - offset; i > 0; i--) {
 
 			Token temp = _tokens.get(i);
-			if (temp.ID == ";") {
+			if (temp.ID.compareTo(";") == 0) {
 				return TokenType.Unknown;
 			} else if (temp.ID.compareTo("]") == 0)
 				arrayIndex++;

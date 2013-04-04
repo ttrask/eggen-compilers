@@ -281,13 +281,13 @@ public class FileTokenizer {
 		Boolean isDeclared = false;
 
 		Token parentToken = null;
-		for (Token t : _Tokens) {
-			if (t.Type == TokenType.ID && t.ID.compareTo(id) == 0
-					&& t.ParentId == parentId && t.IsVarDeclaration) {
+		for (Token s : _Tokens) {
+			if (s.Type == TokenType.ID && s.ID.compareTo(id) == 0
+					&& s.ParentId == parentId && s.IsVarDeclaration) {
 				return true;
 			}
-			if (t.TokenId == parentId) {
-				parentToken = t;
+			if (s.TokenId == parentId) {
+				parentToken = s;
 			}
 
 		}
