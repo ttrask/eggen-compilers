@@ -15,7 +15,8 @@ public class LexicalAnalyzer {
 	private static boolean _isValid = true;
 	private static boolean _isFunctionCall = false;
 	private static List<TokenType> _functionParams = null;
-	private static Token t;
+	private static Token t, lastT, nextT;
+
 	private static List<Token> _tokens = new ArrayList<Token>();
 	private static int _tokenIndex = 0;
 
@@ -120,11 +121,13 @@ public class LexicalAnalyzer {
 				Pop();
 				TokenType returnType = dec_p();
 
-				if (meta == TokenType.Function && returnType != rt) {
-					throw new InvalidTypeException(
-							"Invalid return type.  Expecting: " + rt
-									+ "; Returned " + returnType);
-				}
+				//added for void return types with no return statement.
+				if (!(returnType == TokenType.Unknown && rt == TokenType.Void))
+					if (meta == TokenType.Function && returnType != rt) {
+						throw new InvalidTypeException(
+								"Invalid return type.  Expecting: " + rt
+										+ "; Returned " + returnType);
+					}
 			}
 		}
 		// 3: C => empty
@@ -428,8 +431,8 @@ public class LexicalAnalyzer {
 				if (AreStringsSimilar(t.ID, ")")) {
 					Pop();
 					statement();
-					selection_stmt_p();
-					return TokenType.Unknown;
+					return selection_stmt_p();
+
 				} else {
 					throw new UnexpectedTokenException();
 				}
@@ -456,7 +459,7 @@ public class LexicalAnalyzer {
 		}
 
 		// 37: O'-> empty
-		return TokenType.Unknown;
+		return GetLastMetatype();
 	}
 
 	public static TokenType iteration_stmt() throws Exception {
@@ -513,11 +516,16 @@ public class LexicalAnalyzer {
 
 		// 43: R-> id R'
 		if (IsTokenInSymbolTable(t)) {
-			t1 = TokenType.valueOf(t.Type.toString());
+
+			if (t.Metatype == TokenType.Function)
+				t1 = GetFunctionToken(t.ID).ReturnType;
+			else
+				t1 = TokenType.valueOf(t.Metatype.toString());
+
 			Pop();
 			t2 = expression_p();
 			CheckTypeConcurrency(t1, t2);
-			
+
 			return t2;
 		} else
 		// 44: R=> (R) X' V' T'
@@ -543,7 +551,7 @@ public class LexicalAnalyzer {
 			Pop();
 			t2 = term_p();
 			CheckTypeConcurrency(t1, t2);
-			t2 = add_exp();
+ 			t2 = add_exp();
 			CheckTypeConcurrency(t1, t2);
 			t2 = simple_expression();
 			CheckTypeConcurrency(t1, t2);
@@ -561,23 +569,41 @@ public class LexicalAnalyzer {
 		if (!AreStringsSimilar(t.ID, "(")) {
 			// 47: R'-> S' R'
 			t1 = var();
-			
+
 			t2 = expression_pp();
-			
+			CheckTypeConcurrency(t1, t2);
+			return t2;
 		} else {
 			// 48: R'-> (AB)X'V'T'
+			Token func = GetFunctionToken(lastT.ID);
 			Pop();
+
+			_isFunctionCall = true;
+			_functionParams = new ArrayList<TokenType>();
+			
 			args();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
-				term_p();
-				add_exp();
+				//add logic to deal with function call parameters.
+				if(func.FuncParams.size() != _functionParams.size())
+					throw new LocalException("Invalid number of function parameters.");
+				for(int i=0;i<func.FuncParams.size(); i++)
+				{
+					if(func.FuncParams.get(i) != _functionParams.get(i))
+						throw new LocalException("Invalid function parameter at:" + i);
+				}
+				_isFunctionCall = false;
+				
+				t1 = term_p();
+				CheckTypeConcurrency(t1, func.ReturnType);
+				t2 = add_exp();
+				CheckTypeConcurrency(t2, func.ReturnType);
 				simple_expression();
+				return t2;
 			} else {
 				throw new UnexpectedTokenException();
 			}
 		}
-		return TokenType.Unknown;
 	}
 
 	public static TokenType expression_pp() throws Exception {
@@ -588,11 +614,13 @@ public class LexicalAnalyzer {
 		}
 		// 50: R''-> X' V' T'
 		else {
-			term_p();
-			add_exp();
+			TokenType t1, t2;
+			t1 = term_p();
+			t2 = add_exp();
+			CheckTypeConcurrency(t1, t2);
 			simple_expression();
+			return t1;
 		}
-		return TokenType.Unknown;
 	}
 
 	public static TokenType var() throws Exception {
@@ -601,7 +629,7 @@ public class LexicalAnalyzer {
 				"(", ")", ",", "]")) || t.Type == TokenType.Logic)) {
 			throw new UnexpectedTokenException();
 		}
-
+		TokenType t1 = GetLastMetatype();
 		// 51: S'-> [R]
 		if (AreStringsSimilar(t.ID, "[")) {
 			Pop();
@@ -620,7 +648,7 @@ public class LexicalAnalyzer {
 		}
 
 		// 52 S' -> empty
-		return TokenType.Unknown;
+		return t1;
 	}
 
 	public static TokenType simple_expression() throws Exception {
@@ -630,14 +658,18 @@ public class LexicalAnalyzer {
 			throw new UnexpectedTokenException();
 		}
 		// 53: T'-> U V T'
-k		if (t.Type == TokenType.Logic) {
+		if (t.Type == TokenType.Logic) {
+			TokenType t1, t2;
+			t1 = GetLastMetatype();
 			logic_op();
-			V();
+			t2 = V();
+			CheckTypeConcurrency(t1, t2);
 			simple_expression();
+			return t1;
 		}
 
 		// 54: T'-> empty
-		return TokenType.Unknown;
+		return GetLastMetatype();
 	}
 
 	public static TokenType logic_op() throws Exception {
@@ -653,9 +685,11 @@ k		if (t.Type == TokenType.Logic) {
 
 	public static TokenType V() throws Exception {
 		// 61: V-> X V'
-		term();
-		add_exp();
-		return TokenType.Unknown;
+		TokenType t1, t2;
+		t1 = term();
+		t2 = add_exp();
+		CheckTypeConcurrency(t1, t2);
+		return t1;
 	}
 
 	public static TokenType add_exp() throws Exception {
@@ -665,17 +699,22 @@ k		if (t.Type == TokenType.Logic) {
 		}
 		// 62: V'-> W X V'
 		if (AreStringsSimilar(t.ID, "+") || AreStringsSimilar(t.ID, "-")) {
+			t2 = GetLastMetatype();
 			add_op();
 			t1 = term();
-			t2 = add_exp();
-			if(t2 != TokenType.Unknown)
 			CheckTypeConcurrency(t1, t2);
-			
+
+			add_exp();
+
 			return t1;
 		}
 
 		// 63: V'-> EMPTY
-		return TokenType.Unknown;
+		if (t.Type != TokenType.Int || t.Type != TokenType.Int
+				|| t.Type == TokenType.Void)
+			return GetLastMetatype();
+		else
+			return t.Type;
 	}
 
 	public static TokenType add_op() throws Exception {
@@ -694,11 +733,12 @@ k		if (t.Type == TokenType.Logic) {
 		TokenType t1, t2;
 		t1 = factor();
 		t2 = term_p();
-		
-		if(t2 != TokenType.Int || t2 != TokenType.Float){
+
+		if (t2 != TokenType.Int && t2 != TokenType.Float) {
 			return t1;
-		}
-		else return t2;
+		} else
+			CheckTypeConcurrency(t1, t2);
+			return t2;
 	}
 
 	public static TokenType term_p() throws Exception {
@@ -710,14 +750,17 @@ k		if (t.Type == TokenType.Logic) {
 
 		// 67: X'-> Y Z X'
 		if (AreStringsSimilar(t.ID, "*") || AreStringsSimilar(t.ID, "/")) {
-			t1 = mulop();
+			t1 = GetLastMetatype();
+			mulop();
 			t2 = factor();
+
+			CheckTypeConcurrency(t1, t2);
 
 			return term_p();
 		}
 
 		// 68: X'-> EMPTY
-		return t.Type;
+		return GetLastMetatype();
 	}
 
 	public static TokenType mulop() throws Exception {
@@ -753,6 +796,7 @@ k		if (t.Type == TokenType.Logic) {
 			t1 = t.Type;
 			Pop();
 			t2 = var();
+			return t2;
 
 		} else
 		// 73, 74: Z-> num, floatnum
@@ -768,7 +812,6 @@ k		if (t.Type == TokenType.Logic) {
 			return t1;
 
 		}
-		return TokenType.Unknown;
 	}
 
 	public static List<TokenType> call() throws Exception {
@@ -816,7 +859,7 @@ k		if (t.Type == TokenType.Logic) {
 
 	public static TokenType args_list() throws Exception {
 		// 79: beta-> R gamma
-		expression();
+		_functionParams.add(expression());
 		args_list_p();
 		return TokenType.Unknown;
 	}
@@ -830,7 +873,7 @@ k		if (t.Type == TokenType.Logic) {
 		// 80:; gamma->, R gamma
 		if (AreStringsSimilar(t.ID, ",")) {
 			Pop();
-			expression();
+			_functionParams.add(expression());
 			args_list_p();
 		}
 		// 81: GAMMA -> empty
@@ -844,7 +887,9 @@ k		if (t.Type == TokenType.Logic) {
 			throw new InvalidEndOfFileException();
 		}
 
+		lastT = t;
 		t = _tokens.get(_tokenIndex);
+		nextT = _tokens.get(_tokenIndex + 1);
 		// t.ID = t.ID.toUpperCase();
 	}
 
@@ -904,4 +949,45 @@ k		if (t.Type == TokenType.Logic) {
 		return true;
 	}
 
+	private static TokenType GetLastMetatype() {
+		int arrayIndex = 0;
+		int funcCallIndex = 0;
+		for (int i = _tokenIndex; i > 0; i--) {
+
+			Token temp = _tokens.get(i);
+			if (temp.ID == ";") {
+				return TokenType.Unknown;
+			} else if (temp.ID.compareTo("]")==0)
+				arrayIndex++;
+			else if (temp.ID.compareTo("[")==0)
+				arrayIndex--;
+			else if(temp.ID.compareTo(")")==0)
+				funcCallIndex++;
+			else if(temp.ID.compareTo("(")==0)
+				funcCallIndex--;
+
+			if (arrayIndex <= 0 && funcCallIndex<=0) {
+				if (temp.Type == TokenType.ID)
+					if (temp.Metatype == TokenType.Function) {
+						return GetFunctionToken(temp.ID).ReturnType;
+					} else
+						return temp.Metatype;
+				else if (temp.Type == TokenType.Int
+						|| temp.Type == TokenType.Void
+						|| temp.Type == TokenType.Float)
+					return temp.Type;
+			}
+		}
+		return TokenType.Unknown;
+
+	}
+	
+	private static Token GetFunctionToken(String id){
+		for(Token s:SymbolTable){
+			if(s.ID.compareTo(id)==0 && s.Metatype==TokenType.Function){
+				return s;
+			}
+		}
+		return null;
+	}
 }

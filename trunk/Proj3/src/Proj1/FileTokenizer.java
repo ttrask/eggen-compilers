@@ -88,33 +88,32 @@ public class FileTokenizer {
 
 						blockDepth = t.Depth;
 						// builds symbol table.
-						if (srcTokenNum > 0) {
-							if (t.Type == TokenType.ID) {
 
-								if (isFuncDec) {
-									parentFunction.FuncParams.add(t.Metatype);
-									t.Depth = 1;
-									t.ParentId = parentFunction.TokenId;
+						if (t.Type == TokenType.ID) {
+
+							
+
+							Boolean isVar = true;
+							Boolean isFunc = false;
+							Boolean isVarDeclaration = false;
+							if (sc.Tokens.size() > srcTokenNum + 1) {
+								switch (sc.Tokens.get(srcTokenNum + 1).ID
+										.toLowerCase()) {
+								case "(":
+									isVar = false;
+									isFunc = true;
+									if(blockDepth==0)
+									isFuncDec = true;
+									parentFunction = t;
+									parentFunction.ParentId = -1;
+									parentFunction.FuncParams = new ArrayList<TokenType>();
+									break;
+								case "[":
+									t.IsArray = true;
 								}
-
-								Boolean isVar = true;
-								Boolean isFunc = false;
-								Boolean isVarDeclaration = false;
-								if (sc.Tokens.size() > srcTokenNum + 1) {
-									switch (sc.Tokens.get(srcTokenNum + 1).ID
-											.toLowerCase()) {
-									case "(":
-										isVar = false;
-										isFunc = true;
-										isFuncDec = true;
-										parentFunction = t;
-										parentFunction.FuncParams = new ArrayList<TokenType>();
-										break;
-									case "[":
-										t.IsArray = true;
-									}
-								}
-
+							}
+							
+							if (srcTokenNum > 0) {
 								switch (sc.Tokens.get(srcTokenNum - 1).ID
 										.toLowerCase()) {
 								case "int":
@@ -130,64 +129,80 @@ public class FileTokenizer {
 									t.Metatype = TokenType.Void;
 									break;
 								}
+							}
+							
+							if (isFuncDec) {
+								parentFunction.ParentId = -1;
+								parentFunction.FuncParams.add(t.Metatype);
+								
+								t.Depth = 1;
+								t.ParentId = parentFunction.TokenId;
+							}
+							t.IsVarDeclaration = isVarDeclaration;
+							// if the variable has been flagged as a
+							// function,
 
-								t.IsVarDeclaration = isVarDeclaration;
-								// if the variable has been flagged as a
-								// function,
-
-								if (!isVar) {
-									t.ReturnType = t.Metatype;
-									t.Metatype = TokenType.Function;
-								}
-								else{
-									if(!isVarDeclaration && !IsTokenInSymbolTable(t)){
-										throw new SymbolNotFoundException();
-									}
-								}
-
-								if (isVarDeclaration && !(t.Metatype == TokenType.Function && t.Depth > 0)) {
-									if(IsTokenLocallyDeclared(t.ID, t.ParentId, false)){
-										if(!IsTokenLocallyDeclared(t.ID, t.ParentId, true))
-											AddTokenToSmybolTable(t);
-										else{
-											throw new LocalException("Local variable declared twice.");
-										}
-									}
-									else{
-										AddTokenToSmybolTable(t);
-									}
-									
-								}
+							if (!isVar) {
+								t.ReturnType = t.Metatype;
+								t.Metatype = TokenType.Function;
 							} else {
-								switch (t.ID) {
-								case ")":
-
-									if (isFuncDec) {
-										isFuncDec = false;
-										AddTokenToSmybolTable(parentFunction);
-										parentId = parentFunction.TokenId;
-										t.ParentId = parentId;
-										blockDepth = 1;
-									}
-									break;
-
+								if (!isVarDeclaration
+										&& !IsTokenInSymbolTable(t)) {
+									throw new SymbolNotFoundException();
+								} else if (isVar && !isVarDeclaration) {
+									Token j = GetMostLocalSymbol(t.ID,
+											t.ParentId);
+									t.Metatype = j.Metatype;
+									t.IsArray = j.IsArray;
 								}
 							}
 
-							String s = "";
-							if (t.Type == TokenType.ID
-									|| t.Type == TokenType.Float
-									|| t.Type == TokenType.Int
-									|| t.Type == TokenType.Void
-									|| t.Type == TokenType.Keyword
-									|| t.Type == TokenType.Error)
-								s += t.Type.toString() + ": ";
-							s += t.ID;
-							println(s);
-							if (t.Type == TokenType.Error) {
-								_isFileGood = false;
+							if (isVarDeclaration
+									&& !(t.Metatype == TokenType.Function && t.Depth > 0)) {
+								if (IsTokenLocallyDeclared(t.ID, t.ParentId,
+										false)) {
+									if (!IsTokenLocallyDeclared(t.ID,
+											t.ParentId, true))
+										AddTokenToSmybolTable(t);
+									else {
+										throw new LocalException(
+												"Local variable declared twice.");
+									}
+								} else {
+									AddTokenToSmybolTable(t);
+								}
+
+							}
+						} else {
+							switch (t.ID) {
+							case ")":
+
+								if (isFuncDec) {
+									isFuncDec = false;
+									parentFunction.FuncParams.remove(0);
+									AddTokenToSmybolTable(parentFunction);
+									parentId = parentFunction.TokenId;
+									t.ParentId = parentId;
+									blockDepth = 1;
+								}
+								break;
+
 							}
 						}
+
+						String s = "";
+						if (t.Type == TokenType.ID || t.Type == TokenType.Float
+								|| t.Type == TokenType.Int
+								|| t.Type == TokenType.Void
+								|| t.Type == TokenType.Keyword
+								|| t.Type == TokenType.Error)
+							s += t.Type.toString() + ": ";
+						s += t.ID;
+						println(s);
+						if (t.Type == TokenType.Error) {
+							_isFileGood = false;
+						}
+
 						_Tokens.add(t);
 						srcTokenNum++;
 
@@ -201,8 +216,20 @@ public class FileTokenizer {
 			println("\n\nSymbol Table\n*************************");
 			println("Id\tName\tType\t    Depth\tParent Id");
 			for (Token t : _Symbols) {
-				println(t.TokenId + "\t" + t.ID + "\t" + t.Metatype + "\t    "
-						+ t.Depth + "\t" + t.ParentId);
+				
+				
+				if(t.Metatype == TokenType.Function){
+					String s =t.TokenId + "\t" + t.ID + "\t" + t.Metatype + "\t    "
+							+ t.Depth + "\t" + t.ParentId;
+					for(TokenType t2: t.FuncParams){
+						s += "\t" + t2; 
+					}
+					println(s);	
+				}
+				else{
+					println(t.TokenId + "\t" + t.ID + "\t" + t.Metatype + "\t    "
+							+ t.Depth + "\t" + t.ParentId);
+				}
 			}
 
 		} catch (FileNotFoundException ex) {
@@ -213,7 +240,8 @@ public class FileTokenizer {
 					+ ex.getMessage());
 			_isFileGood = false;
 		} catch (LocalException ex) {
-			println("There was an error processing the file tokens: " + ex.ExceptionMessage);
+			println("There was an error processing the file tokens: "
+					+ ex.ExceptionMessage);
 		}
 
 		return _isFileGood;
@@ -230,7 +258,8 @@ public class FileTokenizer {
 					// if the variable is declared twice locally, throw an
 					// error.
 					if (IsTokenLocallyDeclared(t.ID, t.ParentId, true)) {
-						throw new LocalException("locally defined token already exists.");
+						throw new LocalException(
+								"locally defined token already exists.");
 					}
 					break;
 				} else {
@@ -272,8 +301,27 @@ public class FileTokenizer {
 			return false;
 	}
 
+	private static Token GetMostLocalSymbol(String id, int parentId)
+			throws LocalException {
+		Token parentToken = null;
+		for (Token t : _Tokens) {
+			if (t.Type == TokenType.ID && t.ID.compareTo(id) == 0
+					&& t.ParentId == parentId && t.IsVarDeclaration) {
+				return t;
+			}
+			if (t.TokenId == parentId) {
+				parentToken = t;
+			}
+		}
+
+		if (parentToken != null)
+			return GetMostLocalSymbol(id, parentToken.ParentId);
+		else
+			throw new LocalException("Token not found.");
+	}
+
 	private static Token GetTokenById(int id) {
-		for (Token t : _Symbols) {
+		for (Token t : _Tokens) {
 			if (t.TokenId == id) {
 				return t;
 			}
