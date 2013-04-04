@@ -1,6 +1,8 @@
 package proj3;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,7 +16,8 @@ public class LexicalAnalyzer {
 
 	private static boolean _isValid = true;
 	private static boolean _isFunctionCall = false;
-	private static List<TokenType> _functionParams = null;
+	private static Map<String, List<TokenType>> _functionParams = new HashMap<String, List<TokenType>>();
+	private static int _currentFunctionCallId = -1;
 	private static Token t, lastT, nextT;
 
 	private static List<Token> _tokens = new ArrayList<Token>();
@@ -121,7 +124,7 @@ public class LexicalAnalyzer {
 				Pop();
 				TokenType returnType = dec_p();
 
-				//added for void return types with no return statement.
+				// added for void return types with no return statement.
 				if (!(returnType == TokenType.Unknown && rt == TokenType.Void))
 					if (meta == TokenType.Function && returnType != rt) {
 						throw new InvalidTypeException(
@@ -551,7 +554,7 @@ public class LexicalAnalyzer {
 			Pop();
 			t2 = term_p();
 			CheckTypeConcurrency(t1, t2);
- 			t2 = add_exp();
+			t2 = add_exp();
 			CheckTypeConcurrency(t1, t2);
 			t2 = simple_expression();
 			CheckTypeConcurrency(t1, t2);
@@ -576,24 +579,32 @@ public class LexicalAnalyzer {
 		} else {
 			// 48: R'-> (AB)X'V'T'
 			Token func = GetFunctionToken(lastT.ID);
+			int previousFuncId = _currentFunctionCallId;
+			_currentFunctionCallId = lastT.TokenId;
 			Pop();
 
 			_isFunctionCall = true;
-			_functionParams = new ArrayList<TokenType>();
-			
+
+			_functionParams.put(Integer.toString(_currentFunctionCallId),
+					new ArrayList<TokenType>());
+
 			args();
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
-				//add logic to deal with function call parameters.
-				if(func.FuncParams.size() != _functionParams.size())
-					throw new LocalException("Invalid number of function parameters.");
-				for(int i=0;i<func.FuncParams.size(); i++)
-				{
-					if(func.FuncParams.get(i) != _functionParams.get(i))
-						throw new LocalException("Invalid function parameter at:" + i);
+				List<TokenType> params = _functionParams.get(Integer.toString(_currentFunctionCallId));
+				// add logic to deal with function call parameters.
+				if (func.FuncParams.size() != params.size())
+					throw new LocalException(
+							"Invalid number of function parameters.");
+				for (int i = 0; i < func.FuncParams.size(); i++) {
+					
+					if (func.FuncParams.get(i) != params.get(i))
+						throw new LocalException(
+								"Invalid function parameter at:" + i);
 				}
 				_isFunctionCall = false;
-				
+				_functionParams.remove(Integer.toString(_currentFunctionCallId));
+				_currentFunctionCallId = previousFuncId;
 				t1 = term_p();
 				CheckTypeConcurrency(t1, func.ReturnType);
 				t2 = add_exp();
@@ -738,7 +749,7 @@ public class LexicalAnalyzer {
 			return t1;
 		} else
 			CheckTypeConcurrency(t1, t2);
-			return t2;
+		return t2;
 	}
 
 	public static TokenType term_p() throws Exception {
@@ -794,6 +805,7 @@ public class LexicalAnalyzer {
 		// 72: Z->id S' { id[int] }
 		if (IsTokenInSymbolTable(t)) {
 			t1 = t.Type;
+			//add logic for function calls
 			Pop();
 			t2 = var();
 			return t2;
@@ -814,7 +826,7 @@ public class LexicalAnalyzer {
 		}
 	}
 
-	public static List<TokenType> call() throws Exception {
+	public static TokenType call() throws Exception {
 
 		// 76:Z'->(delta)
 
@@ -826,16 +838,14 @@ public class LexicalAnalyzer {
 			if (AreStringsSimilar(t.ID, ")")) {
 				_isFunctionCall = false;
 				Pop();
-				return _functionParams;
+				return TokenType.Unknown;
 			} else {
 				throw new UnexpectedTokenException();
 			}
 		} else {
 			// 75: Z'-> S'
 			TokenType t1 = var();
-			_functionParams = new ArrayList();
-			_functionParams.add(t1);
-			return _functionParams;
+			return t1;
 		}
 
 	}
@@ -859,7 +869,7 @@ public class LexicalAnalyzer {
 
 	public static TokenType args_list() throws Exception {
 		// 79: beta-> R gamma
-		_functionParams.add(expression());
+		_functionParams.get(Integer.toString(_currentFunctionCallId)).add(expression());
 		args_list_p();
 		return TokenType.Unknown;
 	}
@@ -873,7 +883,7 @@ public class LexicalAnalyzer {
 		// 80:; gamma->, R gamma
 		if (AreStringsSimilar(t.ID, ",")) {
 			Pop();
-			_functionParams.add(expression());
+			_functionParams.get(_currentFunctionCallId).add(expression());
 			args_list_p();
 		}
 		// 81: GAMMA -> empty
@@ -957,16 +967,16 @@ public class LexicalAnalyzer {
 			Token temp = _tokens.get(i);
 			if (temp.ID == ";") {
 				return TokenType.Unknown;
-			} else if (temp.ID.compareTo("]")==0)
+			} else if (temp.ID.compareTo("]") == 0)
 				arrayIndex++;
-			else if (temp.ID.compareTo("[")==0)
+			else if (temp.ID.compareTo("[") == 0)
 				arrayIndex--;
-			else if(temp.ID.compareTo(")")==0)
+			else if (temp.ID.compareTo(")") == 0)
 				funcCallIndex++;
-			else if(temp.ID.compareTo("(")==0)
+			else if (temp.ID.compareTo("(") == 0)
 				funcCallIndex--;
 
-			if (arrayIndex <= 0 && funcCallIndex<=0) {
+			if (arrayIndex <= 0 && funcCallIndex <= 0) {
 				if (temp.Type == TokenType.ID)
 					if (temp.Metatype == TokenType.Function) {
 						return GetFunctionToken(temp.ID).ReturnType;
@@ -981,10 +991,10 @@ public class LexicalAnalyzer {
 		return TokenType.Unknown;
 
 	}
-	
-	private static Token GetFunctionToken(String id){
-		for(Token s:SymbolTable){
-			if(s.ID.compareTo(id)==0 && s.Metatype==TokenType.Function){
+
+	private static Token GetFunctionToken(String id) {
+		for (Token s : SymbolTable) {
+			if (s.ID.compareTo(id) == 0 && s.Metatype == TokenType.Function) {
 				return s;
 			}
 		}
