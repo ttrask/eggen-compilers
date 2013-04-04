@@ -1,6 +1,16 @@
 /* should parse while and if and function */
 int q;
 
+void f(void){
+	{
+	int i;
+	}
+	{
+	int j=3;
+	}
+	{int i=1;}
+}
+
 int func(int j){
 	return 1;
 }
@@ -10,7 +20,7 @@ int car(int j)
    int q[3];
 	return 2;
 	q = func(1);
-   q = func(j+func(1));
+   q = func(j+1);
    return 3*1 + j*2;
 }
 
@@ -38,9 +48,8 @@ void monkey(int x, int y)
    		float x;
    		float y;
    		
-       a[2+1]=3.1;
-       a[car(1)]=3;
+       //a[2+1]=3.1;
+       //a[car(1)]=3;
        c=car(4);
-   }
-   
+   }  
 }
