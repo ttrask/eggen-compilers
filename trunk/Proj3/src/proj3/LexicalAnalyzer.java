@@ -54,6 +54,13 @@ public class LexicalAnalyzer {
 			}
 		} catch (TokenizationDoneException e) {
 			_isValid = true;
+			try{
+				CheckForMain();	
+			}
+			catch(LocalException ex){
+				System.out.println(ex.ExceptionMessage);
+			}
+			
 		} catch (LocalException e) {
 			System.out.println("Error parsing input file: "
 					+ e.ExceptionMessage);
@@ -173,7 +180,13 @@ public class LexicalAnalyzer {
 			if (!IsTokenInSymbolTable(t)) {
 				throw new UnexpectedTokenException();
 			} else {
+
+				boolean isArray = t.IsArray;
+
 				Pop();
+				if ((isArray && t.ID.compareTo("[") != 0)
+						|| (!isArray && t.ID.compareTo("[") == 0))
+					throw new LocalException("Array index improperly used");
 				var_dec_p();
 			}
 
@@ -316,7 +329,16 @@ public class LexicalAnalyzer {
 			local_declaration();
 			TokenType rStmt = stmt_list();
 			if (AreStringsSimilar(t.ID, "}")) {
+				int depth = t.Depth;
 				Pop();
+
+				if (t.TokenId > 0) {
+					Token func = GetParentFunction(t.TokenId);
+
+					// if (depth == 0 && func.ReturnType==returnT) return
+					// TokenType.Void;
+				}
+				
 				return rStmt;
 			} else {
 				throw new UnexpectedTokenException();
@@ -400,7 +422,12 @@ public class LexicalAnalyzer {
 		} else
 		// 32 M->Q
 		if (AreStringsSimilar(t.ID, "return")) {
-			return return_stmt();
+			TokenType t1 = return_stmt();
+			Token parentFunc = GetParentFunction(t.TokenId);
+			if (parentFunc != null) {
+				CheckTypeConcurrency(t1, parentFunc.ReturnType);
+			}
+			return t1;
 		} else {
 			throw new UnexpectedTokenException();
 		}
@@ -458,7 +485,7 @@ public class LexicalAnalyzer {
 		// 36: O'->else M
 		if (AreStringsSimilar(t.ID, "else")) {
 			Pop();
-			statement();
+			return statement();
 		}
 
 		// 37: O'-> empty
@@ -525,7 +552,12 @@ public class LexicalAnalyzer {
 			else
 				t1 = TokenType.valueOf(t.Metatype.toString());
 
+			boolean isArray = t.IsArray;
+
 			Pop();
+			if ((isArray && t.ID.compareTo("[") != 0)
+					|| (!isArray && t.ID.compareTo("[") == 0))
+				throw new LocalException("Array index improperly used");
 			t2 = expression_p();
 			CheckTypeConcurrency(t1, t2);
 
@@ -807,8 +839,12 @@ public class LexicalAnalyzer {
 		// 72: Z->id S' { id[int] }
 		if (IsTokenInSymbolTable(t)) {
 			t1 = t.Type;
-			// add logic for function calls
+			boolean isArray = t.IsArray;
+
 			Pop();
+			if ((isArray && t.ID.compareTo("[") != 0)
+					|| (!isArray && t.ID.compareTo("[") == 0))
+				throw new LocalException("Array index improperly used");
 			t2 = var();
 			return t2;
 
@@ -968,7 +1004,10 @@ public class LexicalAnalyzer {
 		int funcCallIndex = 0;
 		int offset = 0;
 		String currentid = _tokens.get(_tokenIndex).ID;
-		if (_tokenIndex>0 && ( currentid.compareTo(";") == 0 || (currentid.compareTo(")") == 0 && !_isFunctionCall)))
+		if (_tokenIndex > 0
+				&& (currentid.compareTo(";") == 0
+						|| currentid.compareTo("]") == 0 || (currentid
+						.compareTo(")") == 0 && !_isFunctionCall)))
 			offset = 1;
 		for (int i = _tokenIndex - offset; i > 0; i--) {
 
@@ -1007,5 +1046,34 @@ public class LexicalAnalyzer {
 			}
 		}
 		return null;
+	}
+
+	private static Token GetParentFunction(int id) {
+
+		Token t2 = GetTokenById(id);
+		if (t2.Metatype == TokenType.Function)
+			return t2;
+		else if (t2.ParentId == -1) {
+			return t2;
+		} else {
+			return GetParentFunction(t2.ParentId);
+		}
+	}
+
+	private static Token GetTokenById(int id) {
+		for (Token t : _tokens) {
+			if (t.TokenId == id) {
+				return t;
+			}
+		}
+		return null;
+	}
+	private static void CheckForMain() throws LocalException{
+		for(int i=_tokens.size()-1; i>=0; i--){
+			Token t2 = _tokens.get(i);
+			if(t2.Metatype == TokenType.Function && t2.ID.compareTo("main")!=0){
+				throw new LocalException("no main() function found. If the main function exists, it should be the last function in your file.");
+			}
+		}
 	}
 }

@@ -6,22 +6,35 @@ void f(void){
 	int i;
 	}
 	{
-	int j=3;
+	int j;
+	j=2;
 	}
-	{int i=1;}
+	{
+	int i;
+	i=2;
+	}
+	return;
 }
 
-int func(int j){
-	return 1;
-}
+
 
 int car(int j)
 {
-   int q[3];
-	return 2;
-	q = func(1);
-   q = func(j+1);
-   return 3*1 + j*2;
+	int q[3];
+	
+	if(j==2){
+		return 2;
+	}
+	else{
+		return 2;
+	}
+   
+   q[1] = func(func(1));
+   q[func(1)] = func(q[1]*j+1);
+   q[1] = j;
+   return q[1];
+   //return 3*1 + j*2;
+   //return 3.1;
 }
 
 void test2(int y, float z, int x, void t){
@@ -30,7 +43,7 @@ void test2(int y, float z, int x, void t){
 
 void monkey(int x, int y)
 {
-   float a[4];
+   int a[4];
    int b;
    //int x;
    int c;
@@ -48,8 +61,17 @@ void monkey(int x, int y)
    		float x;
    		float y;
    		
-       //a[2+1]=3.1;
-       //a[car(1)]=3;
+       a[2+1]=3;
+       a[car(1)]=3;
        c=car(4);
    }  
+   return ;
+}
+
+void main(void){
+return;
+}
+
+int func(int j){
+	return 1;
 }

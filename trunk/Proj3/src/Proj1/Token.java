@@ -16,7 +16,7 @@ public class Token {
 	public TokenType Metatype = TokenType.Unknown;
 	public TokenType ReturnType = TokenType.Unknown;
 	public List<TokenType> FuncParams;
-	public Boolean IsArray;
+	public Boolean IsArray = false;
 	public Boolean isInitialized;
 	public Boolean IsVarDeclaration = false;
 	public Boolean IsFuncDeclaration = false;

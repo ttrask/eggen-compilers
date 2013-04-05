@@ -64,11 +64,10 @@ public class FileTokenizer {
 			int tokenId = 0;
 
 			for (SourceLine sc : Source) {
-
+				Token parentFunction = null;
 				println("INPUT: " + sc.SourceCode);
 				Boolean isFuncDec = false;
-				Token parentFunction = null;
-
+				
 				if (sc.Tokens.size() > 0) {
 					int srcTokenNum = 0;
 					for (Token t : sc.Tokens) {
@@ -90,9 +89,6 @@ public class FileTokenizer {
 						// builds symbol table.
 
 						if (t.Type == TokenType.ID) {
-
-							
-
 							Boolean isVar = true;
 							Boolean isFunc = false;
 							Boolean isVarDeclaration = false;
@@ -102,6 +98,7 @@ public class FileTokenizer {
 								case "(":
 									isVar = false;
 									isFunc = true;
+									isVarDeclaration = false;
 									if(blockDepth==0)
 									isFuncDec = true;
 									parentFunction = t;
@@ -131,7 +128,7 @@ public class FileTokenizer {
 								}
 							}
 							
-							if (isFuncDec) {
+							if (isFuncDec && isVarDeclaration && parentFunction.TokenId != t.TokenId) {
 								parentFunction.ParentId = -1;
 								parentFunction.FuncParams.add(t.Metatype);
 								
@@ -179,7 +176,7 @@ public class FileTokenizer {
 
 								if (isFuncDec) {
 									isFuncDec = false;
-									parentFunction.FuncParams.remove(0);
+									//parentFunction.FuncParams.remove(0);
 									AddTokenToSmybolTable(parentFunction);
 									parentId = parentFunction.TokenId;
 									t.ParentId = parentId;
@@ -304,13 +301,13 @@ public class FileTokenizer {
 	private static Token GetMostLocalSymbol(String id, int parentId)
 			throws LocalException {
 		Token parentToken = null;
-		for (Token t : _Tokens) {
-			if (t.Type == TokenType.ID && t.ID.compareTo(id) == 0
-					&& t.ParentId == parentId && t.IsVarDeclaration) {
-				return t;
+		for (Token s : _Tokens) {
+			if (s.Type == TokenType.ID && s.ID.compareTo(id) == 0
+					&& s.ParentId == parentId && s.IsVarDeclaration) {
+				return s;
 			}
-			if (t.TokenId == parentId) {
-				parentToken = t;
+			if (s.TokenId == parentId) {
+				parentToken = s;
 			}
 		}
 
