@@ -1,11 +1,11 @@
-package proj3;
+package proj4;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import Proj1.*;
 
-public class Proj3 {
+public class Proj4 {
 
 	/**
 	 * @param args
@@ -34,15 +34,21 @@ public class Proj3 {
 				
 				la.SymbolTable = _symbols;
 				
-				boolean isLexicallyValidFile = LexicalAnalyzer.LexicallyAnalyzeSource(_source);
+				List<String> quadruples = new QuadrupleGenerator().GenerateQuadruple(_source, _symbols);
 				
-				if(isLexicallyValidFile)
+				for(String src: quadruples){
+					System.out.println(src);
+				}
+				
+				//boolean isLexicallyValidFile = LexicalAnalyzer.LexicallyAnalyzeSource(_source);
+				
+				/*if(isLexicallyValidFile)
 					println("VALID FILE");
 				else
-					println("INVALID FILE");
+					println("INVALID FILE");*/
 			}
 			else{
-				println("INVALID FILE");
+				println("There was an error tokenizing your input file.");
 			}
 			
 			

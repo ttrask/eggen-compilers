@@ -1,10 +1,11 @@
+/* should parse while and if and function */
 int q;
 void monkey(void)
 {
    int q;    
-   int a[4];
+   void a[4];
    int b;
-   int c;
+   void c;
 
    b=b/2;
    while (b==3)
@@ -12,9 +13,10 @@ void monkey(void)
        int x;
        x=q+2;
    }
+   
    if (c==b)
    {
-       //a[car(1)]=3;
+       a[car(1)]=3;
        a[2+1]=3;
        c=car(4);
    }
@@ -27,6 +29,5 @@ int car(int j)
 {
    int q[3];
    
-   q[1]=j+4;
-   return q[0]+5;
+   q=j+4;
 }

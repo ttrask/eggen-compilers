@@ -4,6 +4,7 @@ int q;
 void f(void){
 	{
 	int i;
+	i = i-q;
 	}
 	{
 	int j;
@@ -32,12 +33,12 @@ int car(int j)
    q[1] = func(func(1));
    q[func(1)] = func(q[1]*j+1);
    q[1] = j;
-   return q[1];
+   return q[1]+5;
    //return 3*1 + j*2;
    //return 3.1;
 }
 
-void test2(int y, float z, int x, void t){
+void test2(int y, float z, int x, void j){
 	return;
 }
 
@@ -68,10 +69,16 @@ void monkey(int x, int y)
    return ;
 }
 
-void main(void){
-return;
-}
+
 
 int func(int j){
 	return 1;
 }
+
+void main(void x){
+
+test2(1, 1.0, 1, x);
+
+return;
+}
+
