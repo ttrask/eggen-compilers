@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.lang.System;
 
-import __proj4.Quadruple;
 
 import exception.InvalidEndOfFileException;
 import exception.SymbolNotFoundException;
