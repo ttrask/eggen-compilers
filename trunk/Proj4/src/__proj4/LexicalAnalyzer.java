@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import proj4.Quadruple;
+
 import exception.*;
 import Proj1.*;
 
