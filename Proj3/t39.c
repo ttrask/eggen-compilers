@@ -2,9 +2,9 @@
 void monkey(void)
 {                        /* good */
    int q;    
-   void a[4];
+   int a[4];
    int b;
-   void c;
+   int c;
 
    b=b/2;
    while (b==3)
@@ -12,6 +12,7 @@ void monkey(void)
        int x;
        x=q+2;
    }
+   
    if (c==b)
    {
        a[car(1)]=3;
@@ -20,7 +21,13 @@ void monkey(void)
    }
 }
 
+int car(int x){
+return x;
+}
+
 int d;
+int j;
+
 void main(void)
 {
    int q[3];

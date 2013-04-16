@@ -56,6 +56,7 @@ public class FileTokenizer {
 				}
 			}
 
+			br.close();
 			for (SourceLine sc : Source) {
 				println("INPUT: " + sc.SourceCode);
 
