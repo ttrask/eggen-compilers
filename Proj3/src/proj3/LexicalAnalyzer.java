@@ -54,13 +54,8 @@ public class LexicalAnalyzer {
 			}
 		} catch (TokenizationDoneException e) {
 			_isValid = true;
-			try{
-				CheckForMain();	
-			}
-			catch(LocalException ex){
-				System.out.println(ex.ExceptionMessage);
-			}
-			
+			return _isValid;
+
 		} catch (LocalException e) {
 			System.out.println("Error parsing input file: "
 					+ e.ExceptionMessage);
@@ -284,6 +279,7 @@ public class LexicalAnalyzer {
 		// 18: H-'>, I H'
 		if (AreStringsSimilar(t.ID, ",")) {
 			Pop();
+			
 			param();
 			param_list();
 		}
@@ -330,15 +326,20 @@ public class LexicalAnalyzer {
 			TokenType rStmt = stmt_list();
 			if (AreStringsSimilar(t.ID, "}")) {
 				int depth = t.Depth;
-				Pop();
 
 				if (t.TokenId > 0) {
 					Token func = GetParentFunction(t.TokenId);
 
-					// if (depth == 0 && func.ReturnType==returnT) return
+					if (depth == 0) {
+
+						Token t2 = lastT;
+						Pop();
+						return GetLastMetatype(t2);
+					}
 					// TokenType.Void;
 				}
-				
+
+				Pop();
 				return rStmt;
 			} else {
 				throw new UnexpectedTokenException();
@@ -476,7 +477,7 @@ public class LexicalAnalyzer {
 
 	public static TokenType selection_stmt_p() throws Exception {
 
-		if (!(IsTokenInSet(Arrays.asList("(", "{", "if", "while", "return",
+		if (!(IsTokenInSet(Arrays.asList("(", "{", "if", "while", "return", ";",
 				"}", "else"))
 				|| IsTokenInSymbolTable(t)
 				|| t.Type == TokenType.Int || t.Type == TokenType.Float)) {
@@ -610,6 +611,7 @@ public class LexicalAnalyzer {
 			return t2;
 		} else {
 			// 48: R'-> (AB)X'V'T'
+
 			Token func = GetFunctionToken(lastT.ID);
 			int previousFuncId = _currentFunctionCallId;
 			_currentFunctionCallId = lastT.TokenId;
@@ -638,13 +640,21 @@ public class LexicalAnalyzer {
 				_isFunctionCall = false;
 				_functionParams
 						.remove(Integer.toString(_currentFunctionCallId));
-				_currentFunctionCallId = previousFuncId;
-				t1 = term_p();
-				CheckTypeConcurrency(t1, func.ReturnType);
-				t2 = add_exp();
-				CheckTypeConcurrency(t2, func.ReturnType);
-				simple_expression();
-				return t2;
+				Token t3 =GetTokenById(_currentFunctionCallId-1); 
+				if (t3.ID.compareTo(";") == 0 || t3.ID.compareTo("{") == 0) {
+					_currentFunctionCallId = previousFuncId;
+					return func.ReturnType;
+				} else {
+
+					_currentFunctionCallId = previousFuncId;
+
+					t1 = term_p();
+					CheckTypeConcurrency(t1, func.ReturnType);
+					t2 = add_exp();
+					CheckTypeConcurrency(t2, func.ReturnType);
+					simple_expression();
+					return t2;
+				}
 			} else {
 				throw new UnexpectedTokenException();
 			}
@@ -922,7 +932,8 @@ public class LexicalAnalyzer {
 		// 80:; gamma->, R gamma
 		if (AreStringsSimilar(t.ID, ",")) {
 			Pop();
-			_functionParams.get(_currentFunctionCallId).add(expression());
+			_functionParams.get(Integer.toString(_currentFunctionCallId)).add(
+					expression());
 			args_list_p();
 		}
 		// 81: GAMMA -> empty
@@ -1000,19 +1011,25 @@ public class LexicalAnalyzer {
 	}
 
 	private static TokenType GetLastMetatype() {
+		return GetLastMetatype(t);
+	}
+
+	private static TokenType GetLastMetatype(Token s) {
 		int arrayIndex = 0;
 		int funcCallIndex = 0;
 		int offset = 0;
-		String currentid = _tokens.get(_tokenIndex).ID;
-		if (_tokenIndex > 0
+		String currentid = s.ID;
+		int _index = s.TokenId - 1;
+		if (_index > 0
 				&& (currentid.compareTo(";") == 0
 						|| currentid.compareTo("]") == 0 || (currentid
-						.compareTo(")") == 0 && !_isFunctionCall)))
-			offset = 1;
-		for (int i = _tokenIndex - offset; i > 0; i--) {
+						.compareTo(")") == 0)))
+			return GetLastMetatype(_tokens.get(s.TokenId - 2));
+		for (int i = _index - offset; i > 0; i--) {
 
 			Token temp = _tokens.get(i);
-			if (temp.ID.compareTo(";") == 0) {
+			if (temp.ID.compareTo(";") == 0 || temp.ID.compareTo("}") == 0
+					|| temp.ID.compareTo("{") == 0) {
 				return TokenType.Unknown;
 			} else if (temp.ID.compareTo("]") == 0)
 				arrayIndex++;
@@ -1068,12 +1085,5 @@ public class LexicalAnalyzer {
 		}
 		return null;
 	}
-	private static void CheckForMain() throws LocalException{
-		for(int i=_tokens.size()-1; i>=0; i--){
-			Token t2 = _tokens.get(i);
-			if(t2.Metatype == TokenType.Function && t2.ID.compareTo("main")!=0){
-				throw new LocalException("no main() function found. If the main function exists, it should be the last function in your file.");
-			}
-		}
-	}
+
 }

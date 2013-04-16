@@ -1,0 +1,21 @@
+int main(void) { 
+<<<<<<< .mine
+	{
+  int x;
+  int y;
+  j[5]=3;
+  x = func(5, x[func(x)+3.2]);
+  x=((x+2)*(x+5));
+=======
+	
+    i=k+1;  
+>>>>>>> .r17
+  
+ 	if(x==4){ 
+ 		if(j==4) 
+ 			j=3; 
+		else x=3; 
+ 	}
+ 	else y=3;
+  return func(1, fnc(4,x));
+}

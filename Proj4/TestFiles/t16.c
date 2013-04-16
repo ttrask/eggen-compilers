@@ -6,5 +6,4 @@ int main(int x)
    {
       x = a + 1;
    }
-   return 2;
 }
