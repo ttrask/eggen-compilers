@@ -1,4 +1,9 @@
 
+
+int car(int i){
+	return i;
+}
+
 void monkey(void)
 {                        /* good */
    int q;    
@@ -14,15 +19,15 @@ void monkey(void)
    }
    if (c==b)
    {
-       a[car(1)]=3;
-       a[2+1]=3;
+   
+       a = 3;
        c=car(4);
    }
 }
 
-int d;
 void main(void)
 {
    int q[3];
+   int j;
    q=j+4;
 }

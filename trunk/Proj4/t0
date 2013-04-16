@@ -1,10 +1,14 @@
 int sub(int x)
 {
+	x = 4+2;
+	
    return(x+3);
 }
 void main(void)
 {
   int x;
   int y;
-  y = sub(x);
+  y = x;
+  y = sub(x+3);
+  y = sub(3);
 }

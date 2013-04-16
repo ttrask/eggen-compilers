@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2011 rel. 2 sp1 (http://www.altova.com) by Vijay C (FANNIE MAE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="https://www.hmpadmin.com/schemas" targetNamespace="https://www.hmpadmin.com/schemas" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="ServicerTransferRequest">
+		<xs:annotation>
+			<xs:documentation>Root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Deal" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Loan" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:attribute name="InvestorCode">
+										<xs:annotation>
+											<xs:documentation>1-Fannie Mae, 2-Freddie Mac, 3-Private, 4-Portfolio</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="positiveInteger4">
+												<xs:enumeration value="1">
+													<xs:annotation>
+														<xs:documentation>Fannie Mae</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="2">
+													<xs:annotation>
+														<xs:documentation>Freddie Mac</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="3">
+													<xs:annotation>
+														<xs:documentation>Private</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="4">
+													<xs:annotation>
+														<xs:documentation>Portfolio</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="LoanUpdateReasonCode" use="optional">
+										<xs:annotation>
+											<xs:documentation>1-Add 2-Remove 3-Correction</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="positiveInteger4">
+												<xs:enumeration value="1">
+													<xs:annotation>
+														<xs:documentation>Add</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="2">
+													<xs:annotation>
+														<xs:documentation>Remove</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="3">
+													<xs:annotation>
+														<xs:documentation>Correction</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ProgramTypeCategory">
+										<xs:annotation>
+											<xs:documentation>1-HAMP or HAFA 2-FHA 3-RD-HAMP 4-2MP</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="positiveInteger4">
+												<xs:enumeration value="1">
+													<xs:annotation>
+														<xs:documentation>HAMP or HAFA</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="2">
+													<xs:annotation>
+														<xs:documentation>FHA</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="3">
+													<xs:annotation>
+														<xs:documentation>RD-HAMP</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="4">
+													<xs:annotation>
+														<xs:documentation>2MP</xs:documentation>
+													</xs:annotation>
+												</xs:enumeration>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="TransferorServicerLoanNumber">
+										<xs:simpleType>
+											<xs:restriction base="nonBlankString">
+												<xs:maxLength value="30"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="TransfereeServicerLoanNumber">
+										<xs:simpleType>
+											<xs:restriction base="nonBlankString">
+												<xs:maxLength value="30"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="DealIdentifier">
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:pattern value="\d{15}"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ConcurrenceTypeCode">
+							<xs:annotation>
+								<xs:documentation>1-Transferor Concurrence 2-Transferor Non-Concurrence
+3-Transferee Concurrence
+4-Transferee Non-Concurrence</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="positiveInteger4">
+									<xs:enumeration value="1">
+										<xs:annotation>
+											<xs:documentation>Transferor Concurrence</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="2">
+										<xs:annotation>
+											<xs:documentation>Transferor Non-Concurrence</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="3">
+										<xs:annotation>
+											<xs:documentation>Transferee Concurrence</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="4">
+										<xs:annotation>
+											<xs:documentation>Transferee Non-Concurrence</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="SubmissionTypeCode" use="required">
+							<xs:annotation>
+								<xs:documentation>1-SVT Deal Setup 2-SVT Loan Update 3-SVT Deal Update 4-SVT Deal Concurrence 5-SVT Deal Cancel</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="positiveInteger4">
+									<xs:enumeration value="1">
+										<xs:annotation>
+											<xs:documentation>SVT Deal Setup</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="2">
+										<xs:annotation>
+											<xs:documentation>SVT Loan Update</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="3">
+										<xs:annotation>
+											<xs:documentation>SVT Deal Update</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="4">
+										<xs:annotation>
+											<xs:documentation>SVT Deal Concurrence</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="5">
+										<xs:annotation>
+											<xs:documentation>SVT Deal Cancel</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferReasonCode">
+							<xs:annotation>
+								<xs:documentation>1-Standard Transfer 2-Merger 3-Acquisition 4-Repurchase 5-Involuntary Transfer 6-FDIC Takeover</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="positiveInteger4">
+									<xs:annotation>
+										<xs:documentation>1-Trial Not Required/Trial Not Performed,2-Trial Not Required/Trial Performed,3-Trial Required/Trial Performed</xs:documentation>
+									</xs:annotation>
+									<xs:enumeration value="1">
+										<xs:annotation>
+											<xs:documentation>Trial Not Required/Trial Not Performed</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="2">
+										<xs:annotation>
+											<xs:documentation>Trial Not Required/Trial Performed</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="3">
+										<xs:annotation>
+											<xs:documentation>Trial Required/Trial Performed</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferEffectiveDate" type="validDate"/>
+						<xs:attribute name="TransferorHAMPServicerNumber" use="required">
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:pattern value="\d{9}"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransfereeHAMPServicerNumber" use="required">
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:pattern value="\d{9}"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferorPrimaryContactName">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferorPrimaryContactPhone">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferorPrimaryContactEmail">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferorSecondaryContactName">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferorSecondaryContactEmail">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransferorSecondaryContactPhone">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransfereePrimaryContactName">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransfereePrimaryContactPhone">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransfereePrimaryContactEmail">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransfereeSecondaryContactName">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransfereeSecondaryContactEmail">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TransfereeSecondaryContactPhone">
+							<xs:simpleType>
+								<xs:restriction base="nonBlankString">
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="SchemaVersion" use="required">
+				<xs:simpleType>
+					<xs:restriction base="nonBlankString">
+						<xs:enumeration value="3.0"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="NumberOfLoans" type="xs:positiveInteger" use="required"/>
+			<xs:attribute name="SubmitterServicerId">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="100"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="SubmitterTrackingId">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="100"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:simpleType name="nonBlankString">
+		<xs:restriction base="xs:string">
+			<xs:pattern value=".*\S.*"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nonNegativeAmount">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="999999999999999999.99"/>
+			<xs:totalDigits value="20"/>
+			<xs:fractionDigits value="2"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nonNegativeInteger4">
+		<xs:restriction base="xs:nonNegativeInteger">
+			<xs:maxInclusive value="9999"/>
+			<xs:totalDigits value="4"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="positiveInteger4">
+		<xs:restriction base="xs:positiveInteger">
+			<xs:maxInclusive value="9999"/>
+			<xs:totalDigits value="4"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="validDate">
+		<xs:restriction base="xs:date">
+			<xs:pattern value="\d\d\d\d-\d\d-\d\d"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Amount">
+		<xs:restriction base="xs:decimal">
+			<xs:maxInclusive value="999999999999999999.99"/>
+			<xs:minInclusive value="-999999999999999999.99"/>
+			<xs:totalDigits value="20"/>
+			<xs:fractionDigits value="2"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
