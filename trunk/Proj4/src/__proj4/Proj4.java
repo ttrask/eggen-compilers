@@ -1,4 +1,4 @@
-package proj4;
+package __proj4;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,18 +34,12 @@ public class Proj4 {
 				
 				la.SymbolTable = _symbols;
 				
-/*				List<String> quadruples = new QuadrupleGenerator().GenerateQuadruple(_source, _symbols);
-				
-				for(String src: quadruples){
-					System.out.println(src);
-				}
-*/				
 				boolean isLexicallyValidFile = LexicalAnalyzer.LexicallyAnalyzeSource(_source);
 				
-				/*if(isLexicallyValidFile)
+				if(isLexicallyValidFile)
 					println("VALID FILE");
 				else
-					println("INVALID FILE");*/
+					println("INVALID FILE");
 			}
 			else{
 				println("There was an error tokenizing your input file.");
@@ -63,5 +57,7 @@ public class Proj4 {
 	public static void println(String msg) {
 		System.out.println(msg);
 	}
+
+	
 
 }

@@ -16,5 +16,8 @@ public enum TokenType {
 	Arithmetic,
 	EOF,
 	Void,
+	IfStatement,
+	WhenStatement,
+	Declaration,
 	Function
 }

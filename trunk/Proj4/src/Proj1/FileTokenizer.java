@@ -88,6 +88,21 @@ public class FileTokenizer {
 						blockDepth = t.Depth;
 						// builds symbol table.
 
+						switch(t.ID){
+						case "if":
+							t.Metatype = TokenType.IfStatement;
+							break;
+						case "while":
+							t.Metatype = TokenType.WhenStatement;
+							break;
+						case "int":
+						case "float":
+						case "void":
+							t.Metatype = TokenType.Declaration;
+							break;
+							
+						}
+						
 						if (t.Type == TokenType.ID) {
 							Boolean isVar = true;
 							Boolean isFunc = false;
@@ -210,7 +225,7 @@ public class FileTokenizer {
 			}
 
 			_Source = Source;
-
+/*
 			println("\n\nSymbol Table\n*************************");
 			println("Id\tName\tType\t    Depth\tParent Id");
 			for (Token t : _Symbols) {
@@ -226,7 +241,7 @@ public class FileTokenizer {
 					println(t.TokenId + "\t" + t.ID + "\t" + t.Metatype
 							+ "\t    " + t.Depth + "\t" + t.ParentId);
 				}
-			}
+			}*/
 
 			CheckForMain();
 

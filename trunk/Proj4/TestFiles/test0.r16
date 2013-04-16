@@ -1,9 +1,0 @@
-int main(void) { 
-	{
-  int x;{
-  int y;
-  func(5, x);
-  x=((x+2)*(x+5));
-  
-  }
-}

@@ -1,4 +1,4 @@
-package proj4;
+package __proj4;
 
 public class Quadruple {
 	public int LineNumber;

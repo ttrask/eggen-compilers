@@ -24,7 +24,7 @@ public class Tokenizer {
 	public List<String> BlockOperators = Arrays.asList("{", "}", "[", "]");
 	public List<String> ArgumentOperators = Arrays.asList("(", ")", ",", ";");
 	public List<String> CommentOperators = Arrays.asList("/*", "*/", "//");
-
+	
 	public SourceLine TokenizeLine(String line, int commentDepth, int blockDepth) {
 
 		_commentDepth = commentDepth;

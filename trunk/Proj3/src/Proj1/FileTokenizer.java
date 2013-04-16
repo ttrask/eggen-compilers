@@ -29,6 +29,8 @@ public class FileTokenizer {
 
 			String line;
 
+			
+			
 			int lineNumber = 0;
 			int blockDepth = 0;
 			int commentDepth = 0;
@@ -58,6 +60,8 @@ public class FileTokenizer {
 					commentDepth = sc.CommentDepth;
 				}
 			}
+			
+			br.close();
 
 			blockDepth = 0;
 			int parentId = -1;
