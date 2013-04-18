@@ -1,6 +1,9 @@
-int sub(void){
-	int x[3];
-	x[3] = 4;
+int sub(int x){
+	while(x<4){
+		x = 2;
+	}
+	
+	
 }
 
 void main(void)
