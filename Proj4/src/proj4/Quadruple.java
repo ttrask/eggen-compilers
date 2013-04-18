@@ -17,4 +17,12 @@ public class Quadruple {
 		Param2 = param2;
 		Output = output;
 	}
+	
+	public Quadruple(String symbol, String param1, String param2, String output, int linenumber){
+		CallSymbol = symbol;
+		Param1 = param1;
+		Param2 = param2;
+		Output = output;
+		LineNumber = linenumber;
+	}
 }
