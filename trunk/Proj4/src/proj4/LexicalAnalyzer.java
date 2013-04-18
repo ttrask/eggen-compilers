@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import exception.*;
 
 import Proj1.*;
@@ -21,7 +20,8 @@ public class LexicalAnalyzer {
 	public static List<Quadruple> _functionCalls = new ArrayList<Quadruple>();
 	private static boolean _isFunctionCall = false;
 	private static List<Quadruple> _quadruples = new ArrayList<Quadruple>();
-
+	private static List<Quadruple> _targetArrayVar = new ArrayList<Quadruple>();
+	private static List<String> _targetArrayIndex = new ArrayList<String>();
 	private static boolean _isValid = true;
 
 	private static Token t, lastT;
@@ -29,7 +29,6 @@ public class LexicalAnalyzer {
 	private static int _tokenIndex = 0;
 
 	public static boolean LexicallyAnalyzeSource(List<SourceLine> source) {
-
 
 		for (SourceLine s : source) {
 			try {
@@ -78,6 +77,10 @@ public class LexicalAnalyzer {
 
 		}
 
+		for(Quadruple q: _quadruples){
+			PrintQuadruple(q);
+		}
+		
 		return _isValid;
 	}
 
@@ -135,11 +138,11 @@ public class LexicalAnalyzer {
 
 			Quadruple funcQ = new Quadruple();
 
-			PrintQuadruple(q);
+			AddQuadrupleToStack(q);
 			if (t.FuncParams.size() > 0) {
 				Quadruple q2 = new Quadruple();
 				q2.CallSymbol = "params";
-				PrintQuadruple(q2);
+				AddQuadrupleToStack(q2);
 			}
 
 			funcQ.CallSymbol = "end";
@@ -152,7 +155,7 @@ public class LexicalAnalyzer {
 			} else {
 				Pop();
 				dec_p(startVar);
-				PrintQuadruple(funcQ);
+				AddQuadrupleToStack(funcQ);
 			}
 
 		}
@@ -211,15 +214,14 @@ public class LexicalAnalyzer {
 				case "void":
 					q.Param1 = "0";
 				}
-				
+
 				if (!isArray)
-					PrintQuadruple(q);
+					AddQuadrupleToStack(q);
 				Pop();
-				
+
 				startVar = var_dec_p(startVar);
-				
-				if(isArray)
-				{
+
+				if (isArray) {
 					q.Param1 = startVar;
 					Quadruple decl = new Quadruple();
 					decl.CallSymbol = "mult";
@@ -228,10 +230,10 @@ public class LexicalAnalyzer {
 					decl.Output = NewTempVar();
 					startVar = decl.Output;
 					q.Param1 = startVar;
-					PrintQuadruple(decl);
-					PrintQuadruple(q);
+					AddQuadrupleToStack(decl);
+					AddQuadrupleToStack(q);
 				}
-				
+
 			}
 
 		}
@@ -298,7 +300,7 @@ public class LexicalAnalyzer {
 		if (AreStringsSimilar(t.ID, "int") || AreStringsSimilar(t.ID, "float")) {
 			Pop();
 			q.Output = t.ID;
-			PrintQuadruple(q);
+			AddQuadrupleToStack(q);
 			return params_p(startVar);
 		} else
 		// 16 G=> void
@@ -360,7 +362,7 @@ public class LexicalAnalyzer {
 			}
 
 			q.Output = t.ID;
-			PrintQuadruple(q);
+			AddQuadrupleToStack(q);
 			Pop();
 			startVar = param_p(startVar);
 		} else {
@@ -614,16 +616,22 @@ public class LexicalAnalyzer {
 			}
 			boolean isArray = t.IsArray;
 			String arrayId = t.ID;
-			
+
 			Pop();
-			
+
 			startVar = expression_p(startVar);
-			
-			if(isArray){
+
+			if (isArray) {
 				String temp = NewTempVar();
-				PrintQuadruple(new Quadruple("mult", startVar, "4", temp ));
-				PrintQuadruple(new Quadruple("disp", temp , arrayId, NewTempVar()));
-				
+				String temp2 = NewTempVar();
+				String arrIndex = _targetArrayIndex.get(_targetArrayIndex.size()-1);
+				_targetArrayIndex.remove((_targetArrayIndex.size()-1));
+				AddQuadrupleToStack(new Quadruple("mult", arrIndex, "4", temp));
+				AddQuadrupleToStack(new Quadruple("disp", temp, arrayId,
+						temp2));
+				Quadruple arrayAssignment = _targetArrayVar.get(_targetArrayVar.size()-1);
+				arrayAssignment.Param1 = temp2;
+				AddQuadrupleToStack(arrayAssignment);
 			}
 
 			if (_isFunctionCall) {
@@ -680,17 +688,17 @@ public class LexicalAnalyzer {
 
 			_isFunctionCall = true;
 
-			args(startVar);
+			startVar = args(startVar);
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
 				PrintStack();
 				for (Quadruple param : _params) {
-					PrintQuadruple(param);
+					AddQuadrupleToStack(param);
 				}
 
 				_params.clear();
 
-				PrintQuadruple(_functionCalls.get(0));
+				AddQuadrupleToStack(_functionCalls.get(0));
 				_functionCalls.remove(0);
 
 				_isFunctionCall = false;
@@ -710,22 +718,30 @@ public class LexicalAnalyzer {
 	public static String expression_pp(String startVar) throws Exception {
 		// 49: R''=> = R
 		if (AreStringsSimilar(t.ID, "=")) {
-
-			Token left = GetMostLocalSymbol(startVar, t.ParentId);
-			
+			boolean isArrayAssignment = lastT.ID.compareTo("]") == 0;
 			// store left information into a quadruple
 			Quadruple q = new Quadruple();
+
+			q.Output = startVar;
+
 			q.CallSymbol = "assign";
-			q.Output= startVar;
-			
+
 			// generate right expression
 			Pop();
 			startVar = expression(startVar);
 			q.Param1 = startVar;
 			// print right expression and assignment.
-			PrintStack();
-			PrintQuadruple(q);
 
+			if (isArrayAssignment) {
+				String t = q.Param1;
+				q.Param1 = q.Output;
+				q.Output = t;
+				_targetArrayVar.add(q);
+
+			} else {
+				PrintStack();
+				AddQuadrupleToStack(q);
+			}
 		}
 		// 50: R''-> X' V' T'
 		else {
@@ -745,9 +761,16 @@ public class LexicalAnalyzer {
 
 		// 51: S'-> [R]
 		if (AreStringsSimilar(t.ID, "[")) {
+			String arrayVar = lastT.ID;
+			int targetArrayIndex = _targetArrayVar.size();
+			
 			Pop();
 			startVar = expression(startVar);
+			
+			_targetArrayIndex.add(startVar);
+			
 			if (AreStringsSimilar(t.ID, "]")) {
+
 				Pop();
 			} else {
 				throw new UnexpectedTokenException();
@@ -806,8 +829,9 @@ public class LexicalAnalyzer {
 
 			left.CallSymbol = (t.ID.compareTo("+") == 0 ? "add" : "sub");
 
-			left.Param1 = lastT.ID;
-
+			
+			left.Param1 = startVar;
+			
 			add_op(startVar);
 
 			// left.Param2 = t.ID;
@@ -816,11 +840,14 @@ public class LexicalAnalyzer {
 			left.Output = tempVar;
 
 			startVar = term(startVar);
+			
 			left.Param2 = startVar;
-
+			
+			_printStack.add(left);
+			
 			startVar = add_exp(tempVar);
 
-			_printStack.add(left);
+			
 
 			return startVar;
 		}
@@ -860,9 +887,35 @@ public class LexicalAnalyzer {
 
 		// 67: X'-> Y Z X'
 		if (AreStringsSimilar(t.ID, "*") || AreStringsSimilar(t.ID, "/")) {
-			startVar = mulop(startVar);
+
+			Quadruple left = new Quadruple();
+
+			left.CallSymbol = (t.ID.compareTo("*") == 0 ? "mult" : "div");
+
+			
+			left.Param1 = startVar;
+			
+			mulop(startVar);
+			
+			// left.Param2 = t.ID;
+
+			String tempVar = NewTempVar();
+			left.Output = tempVar;
+
+
 			startVar = factor(startVar);
 			startVar = term_p(startVar);
+
+			left.Param2 = startVar;
+			
+			startVar = tempVar;
+			_printStack.add(left);
+			
+
+			return startVar;
+
+			
+			
 		}
 
 		// 68: X'-> EMPTY
@@ -887,7 +940,7 @@ public class LexicalAnalyzer {
 		// 71: Z->(R)
 		if (AreStringsSimilar(t.ID, "(")) {
 			Pop();
-			expression(startVar);
+			startVar = expression(startVar);
 			if (AreStringsSimilar(t.ID, ")")) {
 				Pop();
 			} else {
@@ -896,13 +949,9 @@ public class LexicalAnalyzer {
 		} else
 		// 72: Z->id S'
 		if (IsTokenInSymbolTable(t)) {
-			String s1 = t.ID;
+			startVar = t.ID;
 			Pop();
-			String s2 = var(startVar);
-			if (s2.compareTo("") == 0)
-				return s1;
-			else
-				return s2;
+			startVar = var(startVar);
 
 		} else
 		// 73, 74: Z-> num, floatnum
@@ -974,6 +1023,7 @@ public class LexicalAnalyzer {
 		if (AreStringsSimilar(t.ID, ",")) {
 			Pop();
 			startVar = expression(startVar);
+			_params.add(new Quadruple("arg", "", "", startVar));
 			startVar = args_list_p(startVar);
 		}
 		// 81: GAMMA -> empty
@@ -1018,37 +1068,38 @@ public class LexicalAnalyzer {
 		return false;
 	}
 
-	private static void PrintQuadruple(Quadruple q) {
+	private static void AddQuadrupleToStack(Quadruple q){
 		q.LineNumber = _quadruples.size();
 		_quadruples.add(q);
-
+	}
+	
+	private static void PrintQuadruple(Quadruple q) {
 		System.out.format("%d\t%s\t%s\t%s\t%s", q.LineNumber + 1, q.CallSymbol,
 				(q.Param1 == null ? "" : q.Param1), (q.Param2 == null ? ""
 						: q.Param2), (q.Output == null ? "" : q.Output));
 		System.out.println();
+		
 	}
 
 	private static void PrintStack() {
-		for (int i = _printStack.size() - 1; i >= 0; i--) {
-			PrintQuadruple(_printStack.get(i));
+		//for (int i = _printStack.size() - 1; i >= 0; i--) {
+		for(int i=0; i< _printStack.size(); i++){
+			AddQuadrupleToStack(_printStack.get(i));
 		}
 
 		_printStack.clear();
 	}
 
-	private static Token GetMostLocalInstance(String localVar){
+	private static Token GetMostLocalInstance(String localVar) {
 		Token t = new Token();
-		
-		
-		
+
 		return t;
 	}
-	
 
 	private static TokenType GetLastMetatype() {
 		return GetLastMetatype(t);
 	}
-	
+
 	private static TokenType GetLastMetatype(Token s) {
 		int arrayIndex = 0;
 		int funcCallIndex = 0;
@@ -1099,7 +1150,7 @@ public class LexicalAnalyzer {
 		}
 		return null;
 	}
-	
+
 	private static Token GetMostLocalSymbol(String id, int parentId)
 			throws LocalException {
 		Token parentToken = null;
