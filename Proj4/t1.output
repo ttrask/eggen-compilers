@@ -1,0 +1,10 @@
+1	func	sub	int	1
+2	params			
+3	alloc	4		x
+7	mult	2	3	_t1
+4	cmpr	x	_t1	_t2
+5	breq	_t2		7
+6	break			9
+
+8	assign	3		x
+9	end	func	sub	
