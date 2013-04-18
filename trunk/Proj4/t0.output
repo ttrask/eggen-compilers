@@ -3,10 +3,6 @@
 3	alloc	4		x
 4	arg			1
 5	call	sub	1	_t1
-6	arg			_t2
-7	call	sub	1	_t2
-8	mult	_t1	4	_t3
-9	disp	_t3	x	_t4
-10	assign	_t4		3
-11	return			
-12	end	func	sub	
+6	assign	_t1		x
+7	return			
+8	end	func	sub	
