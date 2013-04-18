@@ -232,7 +232,7 @@ public class FileTokenizer {
 				}
 			}
 
-			CheckForMain();
+			//CheckForMain();
 
 		} catch (FileNotFoundException ex) {
 			System.out.println("File " + inputFile + " not found!");

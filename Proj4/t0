@@ -1,16 +1,24 @@
-int sub(int x, int y, float z[], void j)
+int sub(int x)
 {
-	x = 4+2;
-	
-   return(x+3-x);
+	//x = 4+2*3*2+3;
+	//x=3*(2 + 4)*1;
+	x = sub(1);
+	//x[sub(sub(1))] = 3;
+	return;
+   //return(x+3-2);
 }
+
+
+/*
 void main(void)
 {
   int x;
   int y;
   int t[1];
-  t[1] = 3;
+  y = sub(x, y);
+  //t[sub(1)] = 3;
   /*y = x;
-  y = sub(x+3);
+  y = sub(x+3, 2);
   y = sub(3);*/
 }
+*/
