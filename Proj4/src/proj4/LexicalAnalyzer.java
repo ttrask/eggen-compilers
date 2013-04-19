@@ -825,6 +825,12 @@ public class LexicalAnalyzer {
 
 				if (i >= 0) {
 					String s = _currentFunctionCallIds.get(i);
+					
+					for(int j=0;j<_printStack.size(); j++){
+						AddQuadrupleToStack(_printStack.get(j));
+					}
+					_printStack.clear();
+					
 					for (Quadruple param : _params.get(s)) {
 						AddQuadrupleToStack(param);
 					}
@@ -1148,6 +1154,11 @@ public class LexicalAnalyzer {
 			}
 
 			if (isFunctionCall) {
+				for(int i=0;i<_printStack.size();i++){
+					AddQuadrupleToStack(_printStack.get(i));
+				}
+				_printStack.clear();
+				
 				String curFuncId = _currentFunctionCallIds
 						.get(_currentFunctionCallIds.size() - 1);
 				for (Quadruple param : _params.get(curFuncId)) {
