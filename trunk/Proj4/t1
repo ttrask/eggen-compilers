@@ -1,27 +1,32 @@
+int x;
+int y[3];
+
+void sub2(int x, int y[]){
+	
+	if(x==y[1]){
+	 	x=2;
+	 	while(x==2){
+	 		y[1]=2;
+	 	}
+ 	}	
+	else{
+		x=3;
+		}
+	
+}
+
 int sub(int x){
 
+	int y[4];
 	
-		
-	if(x == 2*3){
-		
-		x=3;
-		
-		
+	if(sub(x)>sub(3)){
+		if(x==3){
+			x =3;
+		}
 	}
-	 
-	
-	/*
-	while(x<4){
-		x = 2;
-	}*/
-	
+	else{
+		x=3;
+	}
+	x=3;
 	
 }
-/*
-void main(void)
-{
-  int t[1];
-  t[1] = 3;
-}
-
-*/
